@@ -104,6 +104,14 @@ def inisialisasi_database():
             outlet_tb_ada_p INTEGER,
             outlet_tb_ks INTEGER,
             omset_bungkus INTEGER,
+            promsus_10_1 INTEGER,
+            promsus_3_1 INTEGER,
+            promsus_2_1 INTEGER,
+            promsus_1_1 INTEGER,
+            promsus_n_mie_instan INTEGER,
+            jumlah_rokok_sampling INTEGER,
+            jumlah_konsumen_trial INTEGER,
+            direct_selling INTEGER,
             waktu_submit TEXT
         )
     """)
@@ -119,6 +127,21 @@ def inisialisasi_database():
     if 'zona' not in columns:
         cursor.execute("ALTER TABLE kanvas ADD COLUMN zona TEXT")
         
+    # Tambahan kolom Promsus jika belum ada di database lama
+    kolom_promsus = {
+        'promsus_10_1': 'INTEGER',
+        'promsus_3_1': 'INTEGER',
+        'promsus_2_1': 'INTEGER',
+        'promsus_1_1': 'INTEGER',
+        'promsus_n_mie_instan': 'INTEGER',
+        'jumlah_rokok_sampling': 'INTEGER',
+        'jumlah_konsumen_trial': 'INTEGER',
+        'direct_selling': 'INTEGER'
+    }
+    for col_name, col_type in kolom_promsus.items():
+        if col_name not in columns:
+            cursor.execute(f"ALTER TABLE kanvas ADD COLUMN {col_name} {col_type} DEFAULT 0")
+
     conn.commit()
     conn.close()
 
@@ -132,7 +155,16 @@ def muat_data():
                    outlet_beli_ada AS [Outlet Beli Ada], outlet_ks_tb AS [Outlet Ks Tb], 
                    outlet_ks_b AS [Outlet Ks B], outlet_tb_ada_a AS [Outlet TB Ada A], 
                    outlet_tb_ada_p AS [Outlet TB Ada P], outlet_tb_ks AS [Outlet TB Ks], 
-                   omset_bungkus AS [Omset (Bungkus)], waktu_submit AS [Waktu Submit]
+                   omset_bungkus AS [Omset (Bungkus)], 
+                   promsus_10_1 AS [Promsus 10+1],
+                   promsus_3_1 AS [Promsus 3+1],
+                   promsus_2_1 AS [Promsus 2+1],
+                   promsus_1_1 AS [Promsus 1+1],
+                   promsus_n_mie_instan AS [N+ Mie Instan],
+                   jumlah_rokok_sampling AS [Jumlah Rokok Sampling],
+                   jumlah_konsumen_trial AS [Jumlah Konsumen Trial],
+                   direct_selling AS [Direct Selling],
+                   waktu_submit AS [Waktu Submit]
             FROM kanvas
             ORDER BY waktu_submit DESC
         """, conn)
@@ -181,6 +213,22 @@ with st.form("form_laporan_kanvas"):
         outlet_tb_ada_p = st.number_input("Jumlah Outlet Tidak Beli Ada P", min_value=0, step=1, value=0)
         outlet_tb_ks = st.number_input("Jumlah Outlet Tidak Beli Ks", min_value=0, step=1, value=0)
 
+    st.markdown("---")
+    st.markdown("#### 🎁 Promosi Khusus (Promsus)")
+    p1, p2, p3, p4 = st.columns(4)
+    with p1:
+        promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=0)
+        promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=0)
+    with p2:
+        promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=0)
+        promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=0)
+    with p3:
+        promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
+        jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=0)
+    with p4:
+        jml_trial = st.number_input("Jumlah Konsumen Trial", min_value=0, step=1, value=0)
+        direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
+
     submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
 
     if submit_button:
@@ -197,12 +245,15 @@ with st.form("form_laporan_kanvas"):
                 INSERT INTO kanvas (
                     tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
                     outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
-                    omset_bungkus, waktu_submit
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    omset_bungkus, promsus_10_1, promsus_3_1, promsus_2_1, promsus_1_1, 
+                    promsus_n_mie_instan, jumlah_rokok_sampling, jumlah_konsumen_trial, 
+                    direct_selling, waktu_submit
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 tgl_str, promotor_entry, zona_final, brand_entry, canvas_plan_entry, outlet_beli_ada, 
                 outlet_ks_tb, outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, 
-                outlet_tb_ks, omset_entry, waktu_str
+                outlet_tb_ks, omset_entry, promsus_10_1, promsus_3_1, promsus_2_1, 
+                promsus_1_1, promsus_n_mie, jml_sampling, jml_trial, direct_selling, waktu_str
             ))
             conn.commit()
             conn.close()
@@ -267,6 +318,21 @@ if not df_data.empty:
                 e_outlet_tb_ada_p = st.number_input("Outlet TB Ada P", min_value=0, step=1, value=int(row_edit['Outlet TB Ada P']))
                 e_outlet_tb_ks = st.number_input("Outlet TB Ks", min_value=0, step=1, value=int(row_edit['Outlet TB Ks']))
 
+            st.markdown("##### Promosi Khusus (Promsus)")
+            ep1, ep2, ep3, ep4 = st.columns(4)
+            with ep1:
+                e_promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=int(row_edit['Promsus 10+1']))
+                e_promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=int(row_edit['Promsus 1+1']))
+            with ep2:
+                e_promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=int(row_edit['Promsus 3+1']))
+                e_promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=int(row_edit['N+ Mie Instan']))
+            with ep3:
+                e_promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=int(row_edit['Promsus 2+1']))
+                e_jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=int(row_edit['Jumlah Rokok Sampling']))
+            with ep4:
+                e_jml_trial = st.number_input("Jumlah Konsumen Trial", min_value=0, step=1, value=int(row_edit['Jumlah Konsumen Trial']))
+                e_direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=int(row_edit['Direct Selling']))
+
             btn_update = st.form_submit_button("💾 Perbarui Data", type="primary")
 
             if btn_update:
@@ -291,13 +357,23 @@ if not df_data.empty:
                             outlet_tb_ada_a = ?,
                             outlet_tb_ada_p = ?,
                             outlet_tb_ks = ?,
-                            omset_bungkus = ?
+                            omset_bungkus = ?,
+                            promsus_10_1 = ?,
+                            promsus_3_1 = ?,
+                            promsus_2_1 = ?,
+                            promsus_1_1 = ?,
+                            promsus_n_mie_instan = ?,
+                            jumlah_rokok_sampling = ?,
+                            jumlah_konsumen_trial = ?,
+                            direct_selling = ?
                         WHERE id = ?
                     """, (
                         tgl_edit_str, e_promotor, zona_edit_final, e_brand, e_canvas_plan,
                         e_outlet_beli_ada, e_outlet_ks_tb, e_outlet_ks_b,
                         e_outlet_tb_ada_a, e_outlet_tb_ada_p, e_outlet_tb_ks,
-                        e_omset, id_dipilih
+                        e_omset, e_promsus_10_1, e_promsus_3_1, e_promsus_2_1,
+                        e_promsus_1_1, e_promsus_n_mie, e_jml_sampling, e_jml_trial,
+                        e_direct_selling, id_dipilih
                     ))
                     conn.commit()
                     conn.close()
@@ -374,13 +450,11 @@ st.markdown("---")
 st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
 st.markdown(f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>", unsafe_allow_html=True)
 
-# Ambil daftar promotor yang sudah entry pada hari ini
 promotor_sudah_entry = []
 if not df_data.empty:
     df_hari_ini = df_data[df_data['Tanggal'] == hari_ini]
     promotor_sudah_entry = df_hari_ini['Nama Promotor'].dropna().unique().tolist()
 
-# Cari promotor yang belum melakukan entry
 daftar_belum_entry = []
 for promotor, zona in PROMOTOR_ZONA.items():
     if promotor not in promotor_sudah_entry:
