@@ -225,7 +225,7 @@ def buat_gambar_rekap(df, judul):
     # Tentukan lebar logo (misal: 30% dari lebar halaman, yaitu 0.30)
     # Posisi 'left' dihitung agar pas di tengah: (1.0 - 0.30) / 2 = 0.35
     logo_width = 1.0
-    logo_left = (1.0 - logo_width) / 2
+    logo_left = (1.0 - logo_width)
     logo_height = 0.1
     logo_bottom = 0.850
 
