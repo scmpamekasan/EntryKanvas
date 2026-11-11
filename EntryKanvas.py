@@ -6,6 +6,10 @@ import pandas as pd
 import pytz
 import requests
 import streamlit as st
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("Agg")
+from PIL import Image as PILImage
 
 # URL Web App dari Google Apps Script Anda
 WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_YGCckSCAKhEOxlOMvhD0_dNUn4OM-lOyYLRzbE7aUzhnK5v9BU6ywVf6n1v-U7Y/exec"
@@ -195,6 +199,52 @@ def muat_data():
     df = pd.DataFrame()
   conn.close()
   return df
+
+
+def buat_gambar_rekap(df, judul):
+  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG)."""
+  fig, ax = plt.subplots(figsize=(14, 10))
+  ax.axis("off")
+  ax.axis("tight")
+
+  cell_text = df.values.tolist()
+  col_labels = list(df.columns)
+  row_labels = list(df.index)
+
+  table = ax.table(
+      cellText=cell_text,
+      colLabels=col_labels,
+      rowLabels=row_labels,
+      loc="center",
+      cellLoc="center",
+  )
+  table.auto_set_font_size(False)
+  table.set_fontsize(9)
+  table.scale(1.15, 1.6)
+
+  # Style header & rows
+  for (row, col), cell in table.get_celld().items():
+    if row == 0:
+      cell.set_text_props(weight="bold", color="white")
+      cell.set_facecolor("#1e3a5f")
+    elif col == -1:
+      cell.set_text_props(weight="bold")
+      cell.set_facecolor("#e2e8f0")
+    else:
+      if row % 2 == 0:
+        cell.set_facecolor("#f8fafc")
+      else:
+        cell.set_facecolor("#ffffff")
+    cell.set_edgecolor("#cbd5e1")
+
+  plt.title(judul, fontsize=14, fontweight="bold", pad=20, color="#0f172a")
+  plt.tight_layout()
+
+  buf = BytesIO()
+  plt.savefig(buf, format="png", bbox_inches="tight", dpi=160, facecolor="white")
+  buf.seek(0)
+  plt.close(fig)
+  return buf
 
 
 # Notifikasi sukses
@@ -1042,6 +1092,58 @@ else:
         st.image("76aksara.png", use_container_width=True)
 
       st.table(df_final_rekap)
+
+      # ====================================================
+      # DOWNLOAD REKAP SEBAGAI GAMBAR (PNG / JPEG)
+      # ====================================================
+      st.markdown("#### 📥 Unduh Rekap Laporan sebagai Gambar")
+      st.caption(
+          "Unduh tabel rekapitulasi di atas dalam format gambar PNG atau JPEG"
+          " untuk keperluan laporan/presentasi."
+      )
+
+      judul_rekap = (
+          f"Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
+          f" {pilih_minggu} - {pilih_tahun}"
+      )
+
+      try:
+        img_buffer = buat_gambar_rekap(df_final_rekap, judul_rekap)
+
+        col_dl1, col_dl2 = st.columns(2)
+        with col_dl1:
+          st.download_button(
+              label="📷 Download PNG",
+              data=img_buffer.getvalue(),
+              file_name=(
+                  f"rekap_kanvas_{pilih_zona.replace(' ', '_')}"
+                  f"_minggu{pilih_minggu}_{pilih_tahun}.png"
+              ),
+              mime="image/png",
+              use_container_width=True,
+              key="dl_rekap_png",
+          )
+        with col_dl2:
+          # Convert PNG buffer to JPEG
+          img_buffer.seek(0)
+          pil_img = PILImage.open(img_buffer).convert("RGB")
+          jpeg_buf = BytesIO()
+          pil_img.save(jpeg_buf, format="JPEG", quality=95)
+          jpeg_buf.seek(0)
+
+          st.download_button(
+              label="🖼️ Download JPEG",
+              data=jpeg_buf.getvalue(),
+              file_name=(
+                  f"rekap_kanvas_{pilih_zona.replace(' ', '_')}"
+                  f"_minggu{pilih_minggu}_{pilih_tahun}.jpg"
+              ),
+              mime="image/jpeg",
+              use_container_width=True,
+              key="dl_rekap_jpeg",
+          )
+      except Exception as e:
+        st.warning(f"Gagal membuat gambar rekap: {e}")
     else:
       st.info(
           f"📭 Tidak ada data laporan untuk {pilih_zona} pada Minggu"
