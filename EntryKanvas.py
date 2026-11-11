@@ -336,7 +336,6 @@ with st.form("form_laporan_kanvas"):
       conn.commit()
       conn.close()
 
-      # Kirim backup otomatis ke Google Sheets jika webhook aktif
       backup_data = {
           "tanggal": tgl_str,
           "nama_promotor": promotor_entry,
@@ -369,41 +368,62 @@ with st.form("form_laporan_kanvas"):
       st.rerun()
 
 # ====================================================
-# MONITORING PROMOTOR BELUM ENTRY HARI INI (TERBUKA BEBAS)
+# MONITORING STATUS ENTRY HARI INI (TERBUKA BEBAS)
 # ====================================================
 st.markdown("---")
-st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
+st.markdown("### 🔍 Monitoring Status Entry Promotor Hari Ini")
 st.markdown(
     f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>",
     unsafe_allow_html=True,
 )
 
 df_data_global = muat_data()
-promotor_sudah_entry = []
+
+# Pisahkan data hari ini
+df_hari_ini = pd.DataFrame()
 if not df_data_global.empty:
   df_hari_ini = df_data_global[df_data_global["Tanggal"] == hari_ini]
-  promotor_sudah_entry = (
-      df_hari_ini["Nama Promotor"].dropna().unique().tolist()
-  )
 
-daftar_belum_entry = []
-for promotor, zona in PROMOTOR_ZONA.items():
-  if promotor not in promotor_sudah_entry:
-    daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
+promotor_sudah_entry = (
+    df_hari_ini["Nama Promotor"].dropna().unique().tolist()
+    if not df_hari_ini.empty
+    else []
+)
 
-df_belum_entry = pd.DataFrame(daftar_belum_entry)
+# Tab atau Tampilan Berdampingan untuk Sudah dan Belum Entry
+tab_sudah, tab_belum = st.tabs([
+    f"✅ Sudah Entry ({len(promotor_sudah_entry)})",
+    f"⚠️ Belum Entry ({len(PROMOTOR_ZONA) - len(promotor_sudah_entry)})",
+])
 
-if not df_belum_entry.empty:
-  st.warning(
-      "⚠️ Terdapat **"
-      f"{len(df_belum_entry)}** promotor yang belum melakukan entry laporan"
-      " hari ini."
-  )
-  st.dataframe(df_belum_entry, use_container_width=True)
-else:
-  st.success(
-      "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
-  )
+with tab_sudah:
+  if not df_hari_ini.empty:
+    st.success(
+        f"Terdapat **{len(promotor_sudah_entry)}** promotor yang sudah"
+        " melakukan entry laporan hari ini."
+    )
+    st.dataframe(df_hari_ini, use_container_width=True)
+  else:
+    st.info("📭 Belum ada promotor yang melakukan entry laporan pada hari ini.")
+
+with tab_belum:
+  daftar_belum_entry = []
+  for promotor, zona in PROMOTOR_ZONA.items():
+    if promotor not in promotor_sudah_entry:
+      daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
+
+  df_belum_entry = pd.DataFrame(daftar_belum_entry)
+
+  if not df_belum_entry.empty:
+    st.warning(
+        f"⚠️ Terdapat **{len(df_belum_entry)}** promotor yang belum melakukan"
+        " entry laporan hari ini."
+    )
+    st.dataframe(df_belum_entry, use_container_width=True)
+  else:
+    st.success(
+        "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
+    )
 
 # ====================================================
 # KEAMANAN: VERIFIKASI PASSWORD UNTUK PANEL ADMIN & REKAP
@@ -442,7 +462,7 @@ else:
   # ====================================================
   # PANEL ADMIN & LOG LAPORAN
   # ====================================================
-  st.markdown("### 📊 Panel Admin & Log Laporan Kanvas")
+  st.markdown("### 📊 Panel Admin & Log Laporan Kanvas (Semua Data)")
 
   df_data = muat_data()
 
