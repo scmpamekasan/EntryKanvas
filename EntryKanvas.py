@@ -570,7 +570,7 @@ if not df_rekap_data.empty:
 
         df_final_rekap = pd.DataFrame(rekap_harian_dict)
         
-        st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
+        st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke {pilih_minggu} - {pilih_tahun}")
         
         # Menggunakan st.table agar tampil terbuka full tanpa kotak scroll
         st.table(df_final_rekap)
