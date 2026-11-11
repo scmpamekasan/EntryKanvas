@@ -571,8 +571,8 @@ if not df_rekap_data.empty:
         
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
         
-        # Tinggi kontainer (height) diatur pas (misal 500px) dengan baris yang sudah diperkecil via CSS di atas
-        st.dataframe(df_final_rekap, use_container_width=True, height=500)
+        # Ditampilkan utuh tanpa scroll (tinggi menyesuaikan isi baris secara otomatis)
+        st.dataframe(df_final_rekap, use_container_width=True, hide_index=False)
         
     else:
         st.info(f"📭 Tidak ada data laporan untuk Minggu ke-{pilih_minggu}.")
