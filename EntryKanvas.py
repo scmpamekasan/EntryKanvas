@@ -207,38 +207,51 @@ def buat_gambar_rekap(df, judul):
   """
   has_logo = os.path.exists("76aksara.png")
 
-  fig_height = 20.0 if has_logo else 17.5
+  fig_height = 20.0 if has_logo else 18.5
   fig = plt.figure(figsize=(18, fig_height), facecolor="white")
 
-  # ===== JUDUL (center di tengah halaman, full width) =====
-  ax_title = fig.add_axes([0.0, 0.955, 1.0, 0.035])
+  # ===== 1. JUDUL (Di bagian paling atas, rata tengah) =====
+  ax_title = fig.add_axes([0.0, 0.945, 1.0, 0.040])
   ax_title.axis("off")
   ax_title.text(
-      0.5, 0.5, judul,
-      ha="center", va="center",
-      fontsize=28, fontweight="bold", color="#0f172a",
-      fontfamily="sans-serif"
+      0.5,
+      0.5,
+      judul,
+      ha="center",
+      va="center",
+      fontsize=26,
+      fontweight="bold",
+      color="#0f172a",
+      fontfamily="sans-serif",
   )
 
-  # ===== LOGO (full width dari ujung ke ujung) =====
+  # ===== 2. LOGO (Full-width dari ujung ke ujung di bawah judul) =====
   if has_logo:
-    ax_logo = fig.add_axes([0.0, 0.855, 1.0, 0.090])
+    ax_logo = fig.add_axes([0.0, 0.840, 1.0, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
-      # Lebar penuh dari ujung ke ujung halaman
+      # Menggunakan aspect="auto" agar logo merentang penuh selebar halaman
       ax_logo.imshow(logo_img, aspect="auto")
       ax_logo.set_xlim(0, logo_img.width)
       ax_logo.set_ylim(logo_img.height, 0)
     except Exception:
-      ax_logo.text(0.5, 0.5, "Logo 76aksara.png", ha="center", va="center",
-                   fontsize=13, color="#64748b")
+      ax_logo.text(
+          0.5,
+          0.5,
+          "Logo 76aksara.png",
+          ha="center",
+          va="center",
+          fontsize=13,
+          color="#64748b",
+      )
+
     table_bottom = 0.02
-    table_height = 0.815
+    table_height = 0.800
   else:
     table_bottom = 0.03
-    table_height = 0.90
-
+    table_height = 0.900
+    
   # ===== TABEL =====
   ax_table = fig.add_axes([0.02, table_bottom, 0.96, table_height])
   ax_table.axis("off")
