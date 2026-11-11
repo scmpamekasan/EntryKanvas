@@ -779,8 +779,6 @@ else:
   st.markdown("---")
   st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
   
-  st.image("76aksara.png", use_container_width=True)
-  
   st.markdown(
       """
       <style>
@@ -984,7 +982,9 @@ else:
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
           f" {pilih_minggu} - {pilih_tahun}"
       )
-
+      
+      st.image("76aksara.png", use_container_width=True)
+      
       st.table(df_final_rekap)
     else:
       st.info(
