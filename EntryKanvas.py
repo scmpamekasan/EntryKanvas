@@ -532,6 +532,10 @@ if not df_rekap_data.empty:
                 avail_sebelum = round(((beli_ada + tba_aktif + tba_pasif) / call) * 100, 1) if call > 0 else 0.0
                 avail_sesudah = round(((beli_ada + beli_ks_tb + beli_ks_b + tba_aktif + tba_pasif) / call) * 100, 1) if call > 0 else 0.0
                 persen_ecer = round((outlet_buka_ecer / call) * 100, 1) if call > 0 else 0.0
+
+                persen_repeat = round(((beli_ada + beli_ks_tb) / (beli_ada + beli_ks_tb + tba_aktif + tba_pasif)) * 100, 1) if (beli_ada + beli_ks_tb + tba_aktif + tba_pasif) > 0 else 0.0
+
+                persen_oos = round((beli_ks_tb / call) * 100, 1) if call > 0 else 0.0
                 
                 total_sampling = df_hari['Jumlah Rokok Sampling'].sum()
                 kontak_konsumen = df_hari['Jumlah Konsumen Trial'].sum()
@@ -553,6 +557,8 @@ if not df_rekap_data.empty:
                     "% Availability Sesudah": f"{avail_sesudah}%",
                     "EC": ec,
                     "% EC": f"{persen_ec}%",
+                    "% Repeat": f"{persen_repeat}%",
+                    "% OOS": f"{persen_oos}%",
                     "% Outlet Ecer": f"{persen_ecer}%",
                     "Total Sampling": total_sampling,
                     "Kontak Konsumen": kontak_konsumen,
