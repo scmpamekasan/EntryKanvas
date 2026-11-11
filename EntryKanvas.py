@@ -227,7 +227,7 @@ def buat_gambar_rekap(df, judul):
 
   # ===== 2. LOGO (Full-width dari ujung ke ujung di bawah judul) =====
   if has_logo:
-    ax_logo = fig.add_axes([0.01, 0.840, 1.0, 0.099])
+    ax_logo = fig.add_axes([0.02, 0.840, 1.0, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
