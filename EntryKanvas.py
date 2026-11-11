@@ -6,6 +6,7 @@ import pandas as pd
 import pytz
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 # URL Web App dari Google Apps Script Anda
 WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_YGCckSCAKhEOxlOMvhD0_dNUn4OM-lOyYLRzbE7aUzhnK5v9BU6ywVf6n1v-U7Y/exec"
@@ -257,7 +258,6 @@ def simpan_ke_database(data_preview):
   conn.commit()
   conn.close()
 
-  # Kirim backup otomatis ke Google Sheets
   backup_ke_gsh_otomatis(data_preview)
 
 
@@ -267,7 +267,6 @@ def simpan_ke_database(data_preview):
 if "form_preview_data" not in st.session_state:
   st.session_state["form_preview_data"] = None
 
-# Jika belum masuk mode preview, tampilkan form input biasa
 if st.session_state["form_preview_data"] is None:
   with st.form("form_laporan_kanvas"):
     st.markdown("### 📝 Masukkan Data Laporan Baru")
@@ -341,7 +340,6 @@ if st.session_state["form_preview_data"] is None:
     direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
 
     st.markdown("---")
-    # Pilihan Tombol: Preview atau Langsung Kirim
     btn_col1, btn_col2 = st.columns(2)
     with btn_col1:
       btn_preview = st.form_submit_button("👁️ Lihat Preview", type="secondary")
@@ -387,7 +385,6 @@ if st.session_state["form_preview_data"] is None:
           )
           st.rerun()
 
-# Jika sudah masuk mode preview, tampilkan ringkasan data beserta tombol Simpan / Batal
 else:
   st.markdown("### 📋 Preview Data Laporan Baru")
   st.info(
@@ -533,9 +530,6 @@ else:
     st.markdown("---")
     st.markdown("### 🛠️ Manajemen Data (Edit, Unduh, & Hapus)")
 
-    # ====================================================
-    # MENU EDIT ENTRY
-    # ====================================================
     with st.expander("✏️ Edit Entry Data (Koreksi Kesalahan Input)"):
       list_id = df_data["ID"].tolist()
       id_dipilih = st.selectbox("Pilih ID Data yang Ingin Di-edit:", list_id)
@@ -755,7 +749,6 @@ else:
 
     col_d, col_h = st.columns(2)
 
-    # --- DOWNLOAD EXCEL ---
     with col_d:
       st.markdown("#### 📥 Unduh Laporan")
       opsi_unduh = st.selectbox(
@@ -783,7 +776,6 @@ else:
           use_container_width=True,
       )
 
-    # --- HAPUS DATA ---
     with col_h:
       st.markdown("#### 🗑️ Hapus Data")
       opsi_hapus = st.selectbox(
@@ -829,7 +821,7 @@ else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
 
   # ====================================================
-  # MODUL REKAPITULASI HARIAN (FULL TANPA SCROLL)
+  # MODUL REKAPITULASI HARIAN WITH SCREENSHOT CAPTURE
   # ====================================================
   st.markdown("---")
   st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
@@ -1029,19 +1021,89 @@ else:
           }
 
       df_final_rekap = pd.DataFrame(rekap_harian_dict)
-
       label_zona_judul = (
           f"Zona {pilih_zona}" if pilih_zona != "Semua Zona" else "Semua Zona"
       )
+
+      # ====================================================
+      # WADAH KHUSUS SCREENSHOT (DIV ID="REKAP-CONTAINER")
+      # ====================================================
       st.markdown(
-          f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
-          f" {pilih_minggu} - {pilih_tahun}"
+          '<div id="rekap-container" style="background-color: white; padding:'
+          ' 20px; border-radius: 12px; border: 1px solid #e2e8f0;">',
+          unsafe_allow_html=True,
       )
 
       if os.path.exists("76aksara.png"):
         st.image("76aksara.png", use_container_width=True)
 
+      st.markdown(
+          f"<h4 style='text-align: center; color: #0f172a;'>Laporan"
+          f" Rekapitulasi {label_zona_judul} - Minggu ke {pilih_minggu} -"
+          f" {pilih_tahun}</h4>",
+          unsafe_allow_html=True,
+      )
+
       st.table(df_final_rekap)
+
+      st.markdown("</div>", unsafe_allow_html=True)
+
+      st.markdown("---")
+
+      # ====================================================
+      # TOMBOL DOWNLOAD SCREENSHOT (HTML2CANVAS JAVASCRIPT)
+      # ====================================================
+      nama_file_png = (
+          f"Rekap_{label_zona_judul}_W{pilih_minggu}_{pilih_tahun}.png".replace(
+              " ", "_"
+          )
+      )
+
+      script_html2canvas = f"""
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+            <button id="btn-download-screenshot" onclick="downloadScreenshot()" style="
+                background-color: #0284c7;
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 15px;
+                cursor: pointer;
+                width: 100%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            ">
+                📷 Download Screenshot Laporan Rekap (PNG)
+            </button>
+
+            <script>
+            function downloadScreenshot() {{
+                const targetElement = window.parent.document.getElementById('rekap-container');
+                if (!targetElement) {{
+                    alert('Elemen Rekapitulasi tidak ditemukan!');
+                    return;
+                }}
+                
+                html2canvas(targetElement, {{
+                    scale: 2, // Resolusi tinggi (HD)
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: "#ffffff"
+                }}).then(canvas => {{
+                    const link = document.createElement('a');
+                    link.download = '{nama_file_png}';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }}).catch(err => {{
+                    console.error('Gagal mengambil screenshot:', err);
+                    alert('Gagal mengambil screenshot.');
+                }});
+            }}
+            </script>
+            """
+
+      components.html(script_html2canvas, height=60)
+
     else:
       st.info(
           f"📭 Tidak ada data laporan untuk {pilih_zona} pada Minggu"
