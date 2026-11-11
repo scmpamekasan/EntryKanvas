@@ -459,12 +459,23 @@ if not df_data.empty:
 else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
 
-
 # ====================================================
-# MODUL REKAPITULASI HARIAN (SENIN - JUMAT & SCROLLABLE)
+# MODUL REKAPITULASI HARIAN (KOMPAK & SCROLLABLE)
 # ====================================================
 st.markdown("---")
 st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
+
+# Styling CSS untuk merapatkan tinggi baris (row height) pada st.dataframe
+st.markdown("""
+    <style>
+    /* Mengecilkan padding sel/baris pada tabel dataframe agar lebih ringkas */
+    div[data-testid="stDataFrame"] td {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+        min-height: 25px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 df_rekap_data = muat_data()
 
@@ -488,7 +499,6 @@ if not df_rekap_data.empty:
         }
         
         df_mingguan['Nama Hari'] = df_mingguan['Tanggal_DT'].dt.weekday.map(mapping_hari)
-        # Hanya menyertakan Senin sampai Jumat
         daftar_hari_kolom = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]
         
         rekap_harian_dict = {}
@@ -561,8 +571,8 @@ if not df_rekap_data.empty:
         
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
         
-        # Menampilkan tabel secara utuh dengan fitur scroll container bawaan Streamlit (height disesuaikan agar tidak terpotong)
-        st.dataframe(df_final_rekap, use_container_width=True, height=650)
+        # Tinggi kontainer (height) diatur pas (misal 500px) dengan baris yang sudah diperkecil via CSS di atas
+        st.dataframe(df_final_rekap, use_container_width=True, height=500)
         
     else:
         st.info(f"📭 Tidak ada data laporan untuk Minggu ke-{pilih_minggu}.")
