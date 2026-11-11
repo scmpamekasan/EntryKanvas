@@ -576,7 +576,7 @@ if not df_rekap_data.empty:
 
         df_final_rekap = pd.DataFrame(rekap_harian_dict)
 
-        st.image("76aksara.png", width=600)
+        st.image("76aksara.png", width=450)
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke {pilih_minggu} - {pilih_tahun}")
         
         # Menggunakan st.table agar tampil terbuka full tanpa kotak scroll
