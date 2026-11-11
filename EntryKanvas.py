@@ -219,7 +219,7 @@ def buat_gambar_rekap(df, judul):
       judul,
       ha="center",
       va="center",
-      fontsize=40,
+      fontsize=35,
       fontweight="bold",
       color="#0f172a",
       fontfamily="sans-serif",
