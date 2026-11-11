@@ -461,7 +461,7 @@ else:
 
 
 # ====================================================
-# MODUL REKAPITULASI HARIAN (LENGKAP DENGAN % METRIK)
+# MODUL REKAPITULASI HARIAN (SENIN - JUMAT & SCROLLABLE)
 # ====================================================
 st.markdown("---")
 st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
@@ -484,11 +484,12 @@ if not df_rekap_data.empty:
     if not df_mingguan.empty:
         mapping_hari = {
             0: "Senin", 1: "Selasa", 2: "Rabu", 
-            3: "Kamis", 4: "Jumat", 5: "Sabtu", 6: "Minggu"
+            3: "Kamis", 4: "Jumat"
         }
         
         df_mingguan['Nama Hari'] = df_mingguan['Tanggal_DT'].dt.weekday.map(mapping_hari)
-        daftar_hari_kolom = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+        # Hanya menyertakan Senin sampai Jumat
+        daftar_hari_kolom = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]
         
         rekap_harian_dict = {}
 
@@ -498,7 +499,6 @@ if not df_rekap_data.empty:
                 tgl_str = df_hari['Tanggal'].iloc[0]
                 tgl_formatted = datetime.strptime(tgl_str, "%Y-%m-%d").strftime("%d/%m/%Y")
                 
-                # Variabel dasar
                 total_armada = df_hari['Nama Promotor'].nunique()
                 
                 beli_ada = df_hari['Outlet Beli Ada'].sum()
@@ -509,24 +509,17 @@ if not df_rekap_data.empty:
                 kosong = df_hari['Outlet TB Ks'].sum()
                 outlet_buka_ecer = df_hari['Outlet Buka Ecer'].sum()
                 
-                # Call = Total seluruh outlet
                 call = beli_ada + beli_ks_tb + beli_ks_b + tba_aktif + tba_pasif + kosong
-                
                 total_omset = df_hari['Omset (Bungkus)'].sum()
                 
-                # Average Dropsize
                 total_outlet_beli = beli_ada + beli_ks_tb + beli_ks_b
                 avg_dropsize = round(total_omset / total_outlet_beli, 1) if total_outlet_beli > 0 else 0.0
                 
-                # EC dan Persentase
                 ec = beli_ada + beli_ks_tb + beli_ks_b
                 persen_ec = round((ec / call) * 100, 1) if call > 0 else 0.0
                 
-                # Availability Sebelum & Sesudah
                 avail_sebelum = round(((beli_ada + tba_aktif + tba_pasif) / call) * 100, 1) if call > 0 else 0.0
                 avail_sesudah = round(((beli_ada + beli_ks_tb + beli_ks_b + tba_aktif + tba_pasif) / call) * 100, 1) if call > 0 else 0.0
-                
-                # % Outlet Ecer
                 persen_ecer = round((outlet_buka_ecer / call) * 100, 1) if call > 0 else 0.0
                 
                 total_sampling = df_hari['Jumlah Rokok Sampling'].sum()
@@ -567,13 +560,15 @@ if not df_rekap_data.empty:
         df_final_rekap = pd.DataFrame(rekap_harian_dict)
         
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
-        st.dataframe(df_final_rekap, use_container_width=True)
+        
+        # Menampilkan tabel secara utuh dengan fitur scroll container bawaan Streamlit (height disesuaikan agar tidak terpotong)
+        st.dataframe(df_final_rekap, use_container_width=True, height=650)
         
     else:
         st.info(f"📭 Tidak ada data laporan untuk Minggu ke-{pilih_minggu}.")
 else:
     st.info("📭 Belum ada data untuk direkap.")
-
+    
 # ====================================================
 # TOMBOL BACKUP MANUAL KE GOOGLE SHEETS
 # ====================================================
