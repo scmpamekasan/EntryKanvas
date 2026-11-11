@@ -202,6 +202,10 @@ if "notifikasi_sukses" in st.session_state:
   st.balloons()
   st.success(st.session_state.pop("notifikasi_sukses"))
 
+# Tampilkan Logo di Bagian Atas Jika Tersedia
+if os.path.exists("76aksara.png"):
+  st.image("76aksara.png", use_container_width=True)
+
 st.markdown(
     "<h2 style='text-align: center;'>📋 Form Entry Laporan Kanvas</h2>",
     unsafe_allow_html=True,
@@ -213,89 +217,126 @@ st.markdown(
 )
 
 # ====================================================
-# FORM ENTRY DATA BARU
+# KEAMANAN: VERIFIKASI PASSWORD ENTRY
 # ====================================================
-with st.form("form_laporan_kanvas"):
-  st.markdown("### 📝 Masukkan Data Laporan Baru")
+st.markdown("---")
+st.markdown("### 🔐 Verifikasi Keamanan Form Entry")
 
-  col1, col2 = st.columns(2)
-  with col1:
-    tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
-    promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
-    brand_entry = st.selectbox("Brand", ["Djarum 76 Aksara"])
-  with col2:
-    zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
-    st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
+if "is_authenticated" not in st.session_state:
+  st.session_state["is_authenticated"] = False
 
-    canvas_plan_entry = st.number_input(
-        "Canvas Plan", min_value=0, step=1, value=0
+if not st.session_state["is_authenticated"]:
+  with st.form("form_password_entry"):
+    password_input = st.text_input(
+        "Masukkan Password untuk Membuka Form Entry:", type="password"
     )
-    omset_entry = st.number_input("Omset (bungkus)", min_value=0, step=1, value=0)
+    btn_login = st.form_submit_button("🔓 Buka Form", type="primary")
 
-  st.markdown("---")
-  st.markdown("#### 📊 Rincian Outlet")
+    if btn_login:
+      # Ganti password di bawah ini sesuai keinginan Anda
+      if password_input == "admin123":
+        st.session_state["is_authenticated"] = True
+        st.success("✅ Password benar! Form entry dibuka.")
+        st.rerun()
+      else:
+        st.error("❌ Password salah! Silakan coba lagi.")
+else:
+  col_info, col_logout = st.columns([3, 1])
+  with col_info:
+    st.info("🔓 Mode Entry Terbuka (Aman)")
+  with col_logout:
+    if st.button("🔒 Kunci Kembali"):
+      st.session_state["is_authenticated"] = False
+      st.rerun()
 
-  col_a, col_b, col_c = st.columns(3)
-  with col_a:
-    outlet_beli_ada = st.number_input(
-        "Jumlah Outlet Beli Ada", min_value=0, step=1, value=0
-    )
-    outlet_ks_tb = st.number_input(
-        "Jumlah Outlet Ks Tb", min_value=0, step=1, value=0
-    )
-  with col_b:
-    outlet_ks_b = st.number_input(
-        "Jumlah Outlet Ks B", min_value=0, step=1, value=0
-    )
-    outlet_tb_ada_a = st.number_input(
-        "Jumlah Outlet Tidak Beli Ada A", min_value=0, step=1, value=0
-    )
-  with col_c:
-    outlet_tb_ada_p = st.number_input(
-        "Jumlah Outlet Tidak Beli Ada P", min_value=0, step=1, value=0
-    )
-    outlet_tb_ks = st.number_input(
-        "Jumlah Outlet Tidak Beli Ks", min_value=0, step=1, value=0
-    )
+  # ====================================================
+  # FORM ENTRY DATA BARU
+  # ====================================================
+  with st.form("form_laporan_kanvas"):
+    st.markdown("### 📝 Masukkan Data Laporan Baru")
 
-  st.markdown("---")
-  st.markdown("#### 🎁 Promosi Khusus (Promsus)")
-  p1, p2, p3, p4 = st.columns(4)
-  with p1:
-    promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=0)
-    promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=0)
-  with p2:
-    promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=0)
-    promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=0)
-  with p3:
-    promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
-    outlet_buka_ecer = st.number_input(
-        "Outlet Buka Ecer", min_value=0, step=1, value=0
-    )
-  with p4:
-    jml_sampling = st.number_input(
-        "Jumlah Rokok Sampling", min_value=0, step=1, value=0
-    )
-    jml_trial = st.number_input(
-        "Jumlah Konsumen Trial", min_value=0, step=1, value=0
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+      tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
+      promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
+      brand_entry = st.selectbox("Brand", ["Djarum 76 Aksara"])
+    with col2:
+      zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
+      st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
 
-  direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
+      canvas_plan_entry = st.number_input(
+          "Canvas Plan", min_value=0, step=1, value=0
+      )
+      omset_entry = st.number_input(
+          "Omset (bungkus)", min_value=0, step=1, value=0
+      )
 
-  submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
+    st.markdown("---")
+    st.markdown("#### 📊 Rincian Outlet")
 
-  if submit_button:
-    if not promotor_entry:
-      st.error("❌ Kolom Nama Promotor wajib diisi!")
-    else:
-      tgl_str = tanggal_entry.strftime("%Y-%m-%d")
-      waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
-      zona_final = PROMOTOR_ZONA.get(promotor_entry, "")
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+      outlet_beli_ada = st.number_input(
+          "Jumlah Outlet Beli Ada", min_value=0, step=1, value=0
+      )
+      outlet_ks_tb = st.number_input(
+          "Jumlah Outlet Ks Tb", min_value=0, step=1, value=0
+      )
+    with col_b:
+      outlet_ks_b = st.number_input(
+          "Jumlah Outlet Ks B", min_value=0, step=1, value=0
+      )
+      outlet_tb_ada_a = st.number_input(
+          "Jumlah Outlet Tidak Beli Ada A", min_value=0, step=1, value=0
+      )
+    with col_c:
+      outlet_tb_ada_p = st.number_input(
+          "Jumlah Outlet Tidak Beli Ada P", min_value=0, step=1, value=0
+      )
+      outlet_tb_ks = st.number_input(
+          "Jumlah Outlet Tidak Beli Ks", min_value=0, step=1, value=0
+      )
 
-      conn = sqlite3.connect(DB_NAME)
-      cursor = conn.cursor()
-      cursor.execute(
-          """
+    st.markdown("---")
+    st.markdown("#### 🎁 Promosi Khusus (Promsus)")
+    p1, p2, p3, p4 = st.columns(4)
+    with p1:
+      promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=0)
+      promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=0)
+    with p2:
+      promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=0)
+      promsus_n_mie = st.number_input(
+          "N+ Mie Instan", min_value=0, step=1, value=0
+      )
+    with p3:
+      promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
+      outlet_buka_ecer = st.number_input(
+          "Outlet Buka Ecer", min_value=0, step=1, value=0
+      )
+    with p4:
+      jml_sampling = st.number_input(
+          "Jumlah Rokok Sampling", min_value=0, step=1, value=0
+      )
+      jml_trial = st.number_input(
+          "Jumlah Konsumen Trial", min_value=0, step=1, value=0
+      )
+
+    direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
+
+    submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
+
+    if submit_button:
+      if not promotor_entry:
+        st.error("❌ Kolom Nama Promotor wajib diisi!")
+      else:
+        tgl_str = tanggal_entry.strftime("%Y-%m-%d")
+        waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
+        zona_final = PROMOTOR_ZONA.get(promotor_entry, "")
+
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
                 INSERT INTO kanvas (
                     tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
                     outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
@@ -304,38 +345,38 @@ with st.form("form_laporan_kanvas"):
                     direct_selling, waktu_submit
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-          (
-              tgl_str,
-              promotor_entry,
-              zona_final,
-              brand_entry,
-              canvas_plan_entry,
-              outlet_beli_ada,
-              outlet_ks_tb,
-              outlet_ks_b,
-              outlet_tb_ada_a,
-              outlet_tb_ada_p,
-              outlet_tb_ks,
-              omset_entry,
-              promsus_10_1,
-              promsus_3_1,
-              promsus_2_1,
-              promsus_1_1,
-              promsus_n_mie,
-              outlet_buka_ecer,
-              jml_sampling,
-              jml_trial,
-              direct_selling,
-              waktu_str,
-          ),
-      )
-      conn.commit()
-      conn.close()
+            (
+                tgl_str,
+                promotor_entry,
+                zona_final,
+                brand_entry,
+                canvas_plan_entry,
+                outlet_beli_ada,
+                outlet_ks_tb,
+                outlet_ks_b,
+                outlet_tb_ada_a,
+                outlet_tb_ada_p,
+                outlet_tb_ks,
+                omset_entry,
+                promsus_10_1,
+                promsus_3_1,
+                promsus_2_1,
+                promsus_1_1,
+                promsus_n_mie,
+                outlet_buka_ecer,
+                jml_sampling,
+                jml_trial,
+                direct_selling,
+                waktu_str,
+            ),
+        )
+        conn.commit()
+        conn.close()
 
-      st.session_state["notifikasi_sukses"] = (
-          "🎉 Data laporan kanvas berhasil disimpan ke database!"
-      )
-      st.rerun()
+        st.session_state["notifikasi_sukses"] = (
+            "🎉 Data laporan kanvas berhasil disimpan ke database!"
+        )
+        st.rerun()
 
 # ====================================================
 # PANEL ADMIN & LOG LAPORAN
@@ -642,7 +683,6 @@ st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
 st.markdown(
     """
     <style>
-    /* Merapatkan tinggi baris pada tabel statis */
     table {
         font-size: 14px;
     }
@@ -669,7 +709,6 @@ if not df_rekap_data.empty:
         "Pilih Zona", daftar_zona_pilihan, key="rekap_zona"
     )
 
-  # Filter berdasarkan zona terlebih dahulu
   if pilih_zona != "Semua Zona":
     df_filtered_zona = df_rekap_data[df_rekap_data["Zona"] == pilih_zona]
   else:
@@ -842,15 +881,11 @@ if not df_rekap_data.empty:
         f"Zona {pilih_zona}" if pilih_zona != "Semua Zona" else "Semua Zona"
     )
     st.markdown(
-        f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke {pilih_minggu} - {pilih_tahun}"
+        f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
+        f" {pilih_minggu} - {pilih_tahun}"
     )
 
-    if os.path.exists("76aksara.png"):
-      st.image("76aksara.png", use_container_width=True)
-
-    # Menggunakan st.table agar tampil terbuka full tanpa kotak scroll
     st.table(df_final_rekap)
-
   else:
     st.info(
         f"📭 Tidak ada data laporan untuk {pilih_zona} pada Minggu"
@@ -878,7 +913,6 @@ if st.button("🔄 Kirim/Backup Semua Data ke Google Sheets", type="primary"):
     sukses = 0
 
     for i, row in df_lokal.iterrows():
-      # Ubah baris dataframe menjadi format dictionary sesuai payload webhook
       payload_manual = {
           "id": int(row["ID"]),
           "tanggal": str(row["Tanggal"]),
@@ -906,14 +940,12 @@ if st.button("🔄 Kirim/Backup Semua Data ke Google Sheets", type="primary"):
       }
 
       try:
-        # Kirim data ke webhook Apps Script
         response = requests.post(WEBHOOK_URL, json=payload_manual, timeout=10)
         if response.status_code == 200:
           sukses += 1
       except Exception as e:
         pass
 
-      # Update progress bar
       progress_bar.progress((i + 1) / total_data)
 
     st.success(
