@@ -11,6 +11,45 @@ TZ_WIB = pytz.timezone('Asia/Jakarta')
 waktu_sekarang = datetime.now(TZ_WIB)
 hari_ini = waktu_sekarang.strftime("%Y-%m-%d")
 
+# Mapping Daftar Promotor dan Zona
+PROMOTOR_ZONA = {
+    "Achmad Danu Ardi": "Bubutan",
+    "Arik Wibisono": "Bubutan",
+    "Arum Ganda Fajar Ria": "Bubutan",
+    "Candra Budi Eka": "Bubutan",
+    "Rofi Wijayanto": "Bubutan",
+    "Angga Budi Setiawan": "Gresik Selatan",
+    "Dhimas Prayoga": "Gresik Selatan",
+    "Hendra": "Gresik Selatan",
+    "Rusdianto": "Gresik Selatan",
+    "Septian Chandra": "Gresik Selatan",
+    "Surya Hadi Pratama": "Gresik Selatan",
+    "Alfianto Nur Huda": "Gresik Selatan",
+    "Heru Setiawan": "Gresik Selatan",
+    "Pisga Andriyanto": "Gresik Selatan",
+    "Muhammad Rizky Pratama Putra": "Gresik Selatan",
+    "Aldi Dwi Prasetyo": "Gresik Utara",
+    "Budi Setyawan": "Gresik Utara",
+    "Dwi Nor Fais": "Gresik Utara",
+    "Khoirur Rijal": "Gresik Utara",
+    "Lurico Umar Raffsanjani": "Gresik Utara",
+    "Rahmad Dani": "Gresik Utara",
+    "M Holidi": "Gresik Utara",
+    "Daniel Arief Kurniawan": "Karangpilang",
+    "Dimas Rizky Dermawan": "Karangpilang",
+    "Guntur Vicki Prasetyo": "Karangpilang",
+    "Zayd Abigail Johansyah": "Karangpilang",
+    "Axel Setiawan": "Sawahan",
+    "Delpiero Kevin Santoso": "Sawahan",
+    "Muhamad Baharudin Yusuf": "Sawahan",
+    "Muhammad Luthfi Anshori": "Sawahan",
+    "Rendi Wahyudi": "Sawahan",
+    "Arik Setiawan": "Tandes",
+    "Syarif Usman Fadholi": "Tandes",
+    "Surya Wisnu Wibisono": "Tandes",
+    "Eko Sucipto": "Tandes"
+}
+
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
     page_title="Form Entry Laporan Kanvas",
@@ -55,6 +94,7 @@ def inisialisasi_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tanggal TEXT,
             nama_promotor TEXT,
+            zona TEXT,
             brand TEXT,
             canvas_plan TEXT,
             outlet_beli_ada INTEGER,
@@ -77,6 +117,8 @@ def inisialisasi_database():
         cursor.execute("ALTER TABLE kanvas RENAME COLUMN pic TO nama_promotor")
     if 'cp' in columns and 'canvas_plan' not in columns:
         cursor.execute("ALTER TABLE kanvas RENAME COLUMN cp TO canvas_plan")
+    if 'zona' not in columns:
+        cursor.execute("ALTER TABLE kanvas ADD COLUMN zona TEXT")
         
     conn.commit()
     conn.close()
@@ -87,7 +129,7 @@ def muat_data():
     conn = sqlite3.connect(DB_NAME)
     try:
         df = pd.read_sql_query("""
-            SELECT id AS ID, tanggal AS Tanggal, nama_promotor AS [Nama Promotor], brand AS Brand, canvas_plan AS [Canvas Plan],
+            SELECT id AS ID, tanggal AS Tanggal, nama_promotor AS [Nama Promotor], zona AS Zona, brand AS Brand, canvas_plan AS [Canvas Plan],
                    outlet_beli_ada AS [Outlet Beli Ada], outlet_ks_tb AS [Outlet Ks Tb], 
                    outlet_ks_b AS [Outlet Ks B], outlet_tb_ada_a AS [Outlet TB Ada A], 
                    outlet_tb_ada_p AS [Outlet TB Ada P], outlet_tb_ks AS [Outlet TB Ks], 
@@ -117,9 +159,13 @@ with st.form("form_laporan_kanvas"):
     col1, col2 = st.columns(2)
     with col1:
         tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
-        promotor_entry = st.text_input("Nama Promotor")
+        promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
         brand_entry = st.selectbox("Brand", ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"])
     with col2:
+        # Otomatis menampilkan zona berdasarkan promotor yang dipilih di form
+        zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
+        st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
+        
         canvas_plan_entry = st.text_input("Canvas Plan")
         omset_entry = st.number_input("Omset (bungkus)", min_value=0, step=1, value=0)
 
@@ -145,17 +191,18 @@ with st.form("form_laporan_kanvas"):
         else:
             tgl_str = tanggal_entry.strftime("%Y-%m-%d")
             waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
+            zona_final = PROMOTOR_ZONA.get(promotor_entry, "")
             
             conn = sqlite3.connect(DB_NAME)
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO kanvas (
-                    tanggal, nama_promotor, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
+                    tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
                     outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
                     omset_bungkus, waktu_submit
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                tgl_str, promotor_entry, brand_entry, canvas_plan_entry, outlet_beli_ada, 
+                tgl_str, promotor_entry, zona_final, brand_entry, canvas_plan_entry, outlet_beli_ada, 
                 outlet_ks_tb, outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, 
                 outlet_tb_ks, omset_entry, waktu_str
             ))
@@ -195,7 +242,10 @@ if not df_data.empty:
             e_col1, e_col2 = st.columns(2)
             with e_col1:
                 e_tanggal = st.date_input("Tanggal", value=datetime.strptime(str(row_edit['Tanggal']), "%Y-%m-%d").date())
-                e_promotor = st.text_input("Nama Promotor", value=str(row_edit['Nama Promotor']))
+                
+                list_promotor = list(PROMOTOR_ZONA.keys())
+                idx_promotor = list_promotor.index(row_edit['Nama Promotor']) if row_edit['Nama Promotor'] in list_promotor else 0
+                e_promotor = st.selectbox("Nama Promotor", list_promotor, index=idx_promotor)
                 
                 # Menentukan index pilihan brand
                 list_brand = ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"]
@@ -203,6 +253,9 @@ if not df_data.empty:
                 e_brand = st.selectbox("Brand", list_brand, index=idx_brand)
                 
             with e_col2:
+                e_zona_otomatis = PROMOTOR_ZONA.get(e_promotor, "-")
+                st.text_input("Zona (Otomatis)", value=e_zona_otomatis, disabled=True)
+                
                 e_canvas_plan = st.text_input("Canvas Plan", value=str(row_edit['Canvas Plan']))
                 e_omset = st.number_input("Omset (bungkus)", min_value=0, step=1, value=int(row_edit['Omset (Bungkus)']))
 
@@ -225,12 +278,15 @@ if not df_data.empty:
                     st.error("❌ Nama Promotor dan Canvas Plan tidak boleh kosong!")
                 else:
                     tgl_edit_str = e_tanggal.strftime("%Y-%m-%d")
+                    zona_edit_final = PROMOTOR_ZONA.get(e_promotor, "")
+                    
                     conn = sqlite3.connect(DB_NAME)
                     cursor = conn.cursor()
                     cursor.execute("""
                         UPDATE kanvas
                         SET tanggal = ?,
                             nama_promotor = ?,
+                            zona = ?,
                             brand = ?,
                             canvas_plan = ?,
                             outlet_beli_ada = ?,
@@ -242,7 +298,7 @@ if not df_data.empty:
                             omset_bungkus = ?
                         WHERE id = ?
                     """, (
-                        tgl_edit_str, e_promotor, e_brand, e_canvas_plan,
+                        tgl_edit_str, e_promotor, zona_edit_final, e_brand, e_canvas_plan,
                         e_outlet_beli_ada, e_outlet_ks_tb, e_outlet_ks_b,
                         e_outlet_tb_ada_a, e_outlet_tb_ada_p, e_outlet_tb_ks,
                         e_omset, id_dipilih
