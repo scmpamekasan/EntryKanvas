@@ -211,7 +211,7 @@ def buat_gambar_rekap(df, judul):
   fig = plt.figure(figsize=(18, fig_height), facecolor="white")
 
   # ===== JUDUL (center di tengah halaman, full width) =====
-  ax_title = fig.add_axes([0.0, 0.955, 1.0, 0.035])
+  ax_title = fig.add_axes([0.0, 0.035, 1.0, 0.035])
   ax_title.axis("off")
   ax_title.text(
       0.5, 0.5, judul,
