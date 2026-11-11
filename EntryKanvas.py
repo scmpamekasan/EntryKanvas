@@ -201,44 +201,105 @@ def muat_data():
   return df
 
 
+import os
+from io import BytesIO
+import matplotlib.pyplot as plt
+from PIL import Image as PILImage
+
+
 def buat_gambar_rekap(df, judul):
   """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG).
-  Tampilan dibuat mirip screenshot: Judul → Logo full-width → Tabel rapi.
+
+  Tampilan dibuat rapi: Judul di tengah -> Logo di tengah -> Tabel rapi.
   """
   has_logo = os.path.exists("76aksara.png")
 
   fig_height = 20.0 if has_logo else 18.5
   fig = plt.figure(figsize=(18, fig_height), facecolor="white")
 
-  # ===== JUDUL (center di tengah halaman, full width) =====
-  ax_title = fig.add_axes([0.0, 0.955, 1.0, 0.035])
+  # ===== JUDUL (Posisi di tengah halaman secara horizontal) =====
+  # Menggunakan [left, bottom, width, height]. Lebar dibuat penuh (1.0) agar text-align center berfungsi sempurna di tengah.
+  ax_title = fig.add_axes([0.0, 0.945, 1.0, 0.040])
   ax_title.axis("off")
   ax_title.text(
-      0.5, 0.5, judul,
-      ha="right", va="center",
-      fontsize=30, fontweight="bold", color="#0f172a",
-      fontfamily="sans-serif"
+      0.5,
+      0.5,
+      judul,
+      ha="center",
+      va="center",
+      fontsize=26,
+      fontweight="bold",
+      color="#0f172a",
+      fontfamily="sans-serif",
   )
 
-  # ===== LOGO (full width dari ujung ke ujung) =====
+  # ===== LOGO (Posisi di tengah halaman & menjaga proporsi asli) =====
   if has_logo:
-    ax_logo = fig.add_axes([0.0, 0.855, 1.0, 0.090])
-    ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
-      # Lebar penuh dari ujung ke ujung halaman
-      ax_logo.imshow(logo_img, aspect="auto")
-      ax_logo.set_xlim(0, logo_img.width)
-      ax_logo.set_ylim(logo_img.height, 0)
-    except Exception:
-      ax_logo.text(0.5, 0.5, "Logo 76aksara.png", ha="center", va="center",
-                   fontsize=13, color="#64748b")
+      img_w, img_h = logo_img.size
+
+      # Tentukan lebar logo di canvas (misal: 30% dari lebar total halaman)
+      # Agar di tengah, posisi 'left' adalah (1.0 - width) / 2 -> (1.0 - 0.30) / 2 = 0.35
+      logo_width = 0.30
+      logo_left = (1.0 - logo_width) / 2
+      logo_height = (
+          0.085  # Perkiraan tinggi proporsional di area atas (di bawah judul)
+      )
+      logo_bottom = 0.850
+
+      ax_logo = fig.add_axes([logo_left, logo_bottom, logo_width, logo_height])
+      ax_logo.axis("off")
+
+      # Gunakan aspect='equal' atau biarkan center supaya gambar tidak gepeng/tertarik melebar
+      ax_logo.imshow(logo_img, aspect="equal")
+    except Exception as e:
+      ax_logo = fig.add_axes([0.35, 0.850, 0.30, 0.085])
+      ax_logo.axis("off")
+      ax_logo.text(
+          0.5,
+          0.5,
+          "Logo 76aksara.png",
+          ha="center",
+          va="center",
+          fontsize=13,
+          color="#64748b",
+      )
+
     table_bottom = 0.02
     table_height = 0.815
   else:
     table_bottom = 0.03
     table_height = 0.90
 
+  # ===== TABEL DATA REKAP =====
+  ax_table = fig.add_axes([0.05, table_bottom, 0.90, table_height])
+  ax_table.axis("off")
+
+  table_data = [df.columns.tolist()] + df.values.tolist()
+  table = ax_table.table(
+      cellText=table_data,
+      loc="center",
+      cellLoc="center",
+  )
+  table.auto_set_font_size(False)
+  table.set_fontsize(10)
+  table.scale(1.2, 1.5)
+
+  # Styling header tabel agar makin kontras & rapi
+  for (row_idx, col_idx), cell in table.get_celld().items():
+    if row_idx == 0:
+      cell.set_facecolor("#0f172a")
+      cell.set_text_props(color="white", fontweight="bold")
+    else:
+      cell.set_facecolor("#f8fafc" if row_idx % 2 == 0 else "white")
+
+  buffer_img = BytesIO()
+  plt.savefig(buffer_img, format="png", bbox_inches="tight", dpi=300)
+  plt.close(fig)
+  buffer_img.seek(0)
+  return buffer_img
+  
   # ===== TABEL =====
   ax_table = fig.add_axes([0.02, table_bottom, 0.96, table_height])
   ax_table.axis("off")
