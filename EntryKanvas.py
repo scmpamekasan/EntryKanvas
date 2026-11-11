@@ -375,7 +375,6 @@ st.markdown(
 
 df_data_global = muat_data()
 
-# Pisahkan data hari ini
 df_hari_ini = pd.DataFrame()
 if not df_data_global.empty:
   df_hari_ini = df_data_global[df_data_global["Tanggal"] == hari_ini]
@@ -386,7 +385,6 @@ promotor_sudah_entry = (
     else []
 )
 
-# Tab atau Tampilan Berdampingan untuk Sudah dan Belum Entry
 tab_sudah, tab_belum = st.tabs([
     f"✅ Sudah Entry ({len(promotor_sudah_entry)})",
     f"⚠️ Belum Entry ({len(PROMOTOR_ZONA) - len(promotor_sudah_entry)})",
@@ -398,7 +396,20 @@ with tab_sudah:
         f"Terdapat **{len(promotor_sudah_entry)}** promotor yang sudah"
         " melakukan entry laporan hari ini."
     )
-    st.dataframe(df_hari_ini, use_container_width=True)
+    # Filter hanya menampilkan kolom Nama Promotor dan Zona saja
+    df_sudah_tampil = df_hari_ini[["Nama Promotor", Zona]].drop_duplicates() \
+        if "Zona" in df_hari_ini.columns else pd.DataFrame()
+    
+    # Cara aman ambil kolom Nama Promotor dan Zona dari mapping / dataframe
+    data_sudah_list = []
+    for p in promotor_sudah_entry:
+      data_sudah_list.append({
+          "Nama Promotor": p,
+          "Zona": PROMOTOR_ZONA.get(p, "-")
+      })
+    df_sudah_clean = pd.DataFrame(data_sudah_list)
+    
+    st.dataframe(df_sudah_clean, use_container_width=True)
   else:
     st.info("📭 Belum ada promotor yang melakukan entry laporan pada hari ini.")
 
@@ -975,6 +986,7 @@ else:
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
           f" {pilih_minggu} - {pilih_tahun}"
       )
+      
       st.image("76aksara.png", use_container_width=True)
       
       st.table(df_final_rekap)
