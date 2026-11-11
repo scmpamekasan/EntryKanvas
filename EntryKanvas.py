@@ -458,7 +458,64 @@ if not df_data.empty:
                     st.error("❌ Password salah!")
 else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
+# ====================================================
+# TOMBOL BACKUP MANUAL KE GOOGLE SHEETS
+# ====================================================
+st.markdown("---")
+st.markdown("### ☁️ Backup Data ke Google Sheets")
+st.markdown("Gunakan tombol di bawah ini jika Anda ingin melakukan sinkronisasi atau backup ulang seluruh data lokal ke Google Sheets secara manual.")
 
+if st.button("🔄 Kirim/Backup Semua Data ke Google Sheets", type="primary"):
+    df_lokal = muat_data()
+    
+    if not df_lokal.empty:
+        progress_bar = st.progress(0)
+        total_data = len(df_lokal)
+        sukses = 0
+        
+        for i, row in df_lokal.iterrows():
+            # Ubah baris dataframe menjadi format dictionary sesuai payload webhook
+            payload_manual = {
+                "id": int(row["ID"]),
+                "tanggal": str(row["Tanggal"]),
+                "nama_promotor": str(row["Nama Promotor"]),
+                "zona": str(row["Zona"]),
+                "brand": str(row["Brand"]),
+                "canvas_plan": int(row["Canvas Plan"]),
+                "outlet_beli_ada": int(row["Outlet Beli Ada"]),
+                "outlet_ks_tb": int(row["Outlet Ks Tb"]),
+                "outlet_ks_b": int(row["Outlet Ks B"]),
+                "outlet_tb_ada_a": int(row["Outlet TB Ada A"]),
+                "outlet_tb_ada_p": int(row["Outlet TB Ada P"]),
+                "outlet_tb_ks": int(row["Outlet TB Ks"]),
+                "omset_bungkus": int(row["Omset (Bungkus)"]),
+                "promsus_10_1": int(row["Promsus 10+1"]),
+                "promsus_3_1": int(row["Promsus 3+1"]),
+                "promsus_2_1": int(row["Promsus 2+1"]),
+                "promsus_1_1": int(row["Promsus 1+1"]),
+                "promsus_n_mie_instan": int(row["N+ Mie Instan"]),
+                "outlet_buka_ecer": int(row["Outlet Buka Ecer"]),
+                "jumlah_rokok_sampling": int(row["Jumlah Rokok Sampling"]),
+                "jumlah_konsumen_trial": int(row["Jumlah Konsumen Trial"]),
+                "direct_selling": int(row["Direct Selling"]),
+                "waktu_submit": str(row["Waktu Submit"])
+            }
+            
+            try:
+                # Kirim data ke webhook Apps Script
+                response = requests.post(WEBHOOK_URL, json=payload_manual, timeout=10)
+                if response.status_code == 200:
+                    sukses += 1
+            except Exception as e:
+                pass
+            
+            # Update progress bar
+            progress_bar.progress((i + 1) / total_data)
+            
+        st.success(f"✅ Berhasil mem-backup {sukses} dari {total_data} data ke Google Sheets!")
+    else:
+        st.info("📭 Belum ada data di database lokal untuk di-backup.")
+        
 # ====================================================
 # MONITORING PROMOTOR BELUM ENTRY HARI INI
 # ====================================================
