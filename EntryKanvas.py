@@ -215,8 +215,8 @@ def buat_gambar_rekap(df, judul):
   ax_title.axis("off")
   ax_title.text(
       0.5, 0.5, judul,
-      ha="center", va="center",
-      fontsize=28, fontweight="bold", color="#0f172a",
+      ha="left", va="center",
+      fontsize=30, fontweight="bold", color="#0f172a",
       fontfamily="sans-serif"
   )
 
