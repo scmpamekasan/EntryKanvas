@@ -227,7 +227,7 @@ def buat_gambar_rekap(df, judul):
 
   # ===== 2. LOGO (Full-width dari ujung ke ujung di bawah judul) =====
   if has_logo:
-    ax_logo = fig.add_axes([0.02, 0.840, 0.96, 0.095])
+    ax_logo = fig.add_axes([0.02, 0.840, 0.99, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
@@ -253,7 +253,7 @@ def buat_gambar_rekap(df, judul):
     table_height = 0.900
     
   # ===== TABEL =====
-  ax_table = fig.add_axes([0.02, table_bottom, 0.96, table_height])
+  ax_table = fig.add_axes([0.02, table_bottom, 0.99, table_height])
   ax_table.axis("off")
 
   cell_text = [[str(v) for v in row] for row in df.values.tolist()]
