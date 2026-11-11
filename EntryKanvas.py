@@ -5,6 +5,17 @@ import os
 from datetime import datetime
 from io import BytesIO
 import pytz
+import requests
+
+# URL Web App dari Google Apps Script Anda
+WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz8T5jPvAYldZZ03VF8VVEtgak4LLw-kZkjj5lyX7cP-qyA3fSYdHew498dsybAmBc/exec"
+
+def backup_ke_gsh_otomatis(data_dict):
+    try:
+        requests.post(WEBHOOK_URL, json=data_dict)
+    except Exception as e:
+        print(f"Gagal backup: {e}")
+
 
 # Zona Waktu WIB
 TZ_WIB = pytz.timezone('Asia/Jakarta')
