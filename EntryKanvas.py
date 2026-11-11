@@ -1085,7 +1085,7 @@ else:
                 }}
                 
                 html2canvas(targetElement, {{
-                    scale: 2, // Resolusi tinggi (HD)
+                    scale: 2,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: "#ffffff"
