@@ -207,11 +207,11 @@ def buat_gambar_rekap(df, judul):
   """
   has_logo = os.path.exists("76aksara.png")
 
-  fig_height = 20.0 if has_logo else 17.5
+  fig_height = 20.0 if has_logo else 18.5
   fig = plt.figure(figsize=(18, fig_height), facecolor="white")
 
   # ===== JUDUL (center di tengah halaman, full width) =====
-  ax_title = fig.add_axes([0.0, 0.035, 1.0, 0.035])
+  ax_title = fig.add_axes([0.0, 0.955, 1.0, 0.035])
   ax_title.axis("off")
   ax_title.text(
       0.5, 0.5, judul,
