@@ -8,7 +8,7 @@ import pytz
 import requests
 
 # URL Web App dari Google Apps Script Anda
-WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzXm8OXWz6BpFEcL1wfM8BPXk1p4nHqZoo9inAhYEzQ_wKrzl1EKeJgV2JCZAARXaQ/exec"
+WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwZJK1aW_T_UyGzG72xeJQPJ7vi0IHlRDjH2_A45rYMyA4spH9zG3KaTpvw0qP59pc/exec"
 
 def backup_ke_gsh_otomatis(data_dict):
     try:
