@@ -458,6 +458,121 @@ if not df_data.empty:
                     st.error("❌ Password salah!")
 else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
+
+# ====================================================
+# MODUL REKAPITULASI HARIAN (MENIRU FORMAT GAMBAR)
+# ====================================================
+st.markdown("---")
+st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
+
+df_rekap_data = muat_data()
+
+if not df_rekap_data.empty:
+    # Memastikan kolom tanggal bertipe datetime untuk memudahkan grouping
+    df_rekap_data['Tanggal_DT'] = pd.to_datetime(df_rekap_data['Tanggal'])
+    
+    # Pilihan untuk melihat berdasarkan rentang tanggal atau minggu berjalan
+    col_rk1, col_rk2 = st.columns(2)
+    with col_rk1:
+        pilih_tahun = st.selectbox("Pilih Tahun", sorted(df_rekap_data['Tanggal_DT'].dt.year.unique(), reverse=True), key="rekap_thn")
+    with col_rk2:
+        # Pilihan minggu dalam tahun
+        df_filtered_tahun = df_rekap_data[df_rekap_data['Tanggal_DT'].dt.year == pilih_tahun]
+        list_minggu = sorted(df_filtered_tahun['Tanggal_DT'].dt.isocalendar().week.unique(), reverse=True)
+        pilih_minggu = st.selectbox("Pilih Minggu ke- (Week)", list_minggu, key="rekap_mg")
+
+    # Filter data berdasarkan minggu dan tahun yang dipilih
+    df_mingguan = df_filtered_tahun[df_filtered_tahun['Tanggal_DT'].dt.isocalendar().week == pilih_minggu]
+
+    if not df_mingguan.empty:
+        # Urutan hari dalam seminggu
+        mapping_hari = {
+            0: "Senin", 1: "Selasa", 2: "Rabu", 
+            3: "Kamis", 4: "Jumat", 5: "Sabtu", 6: "Minggu"
+        }
+        
+        # Membuat pivot harian (Senin - Minggu)
+        # Kita ambil tanggal unik yang ada di minggu tersebut
+        df_mingguan['Nama Hari'] = df_mingguan['Tanggal_DT'].dt.weekday.map(mapping_hari)
+        
+        # Daftar hari standar operasional
+        daftar_hari_kolom = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+        
+        # Dictionary untuk menampung data per hari
+        rekap_harian_dict = {}
+        tanggal_harian_dict = {}
+
+        for hari in daftar_hari_kolom:
+            df_hari = df_mingguan[df_mingguan['Nama Hari'] == hari]
+            if not df_hari.empty:
+                tgl_str = df_hari['Tanggal'].iloc[0]
+                tanggal_harian_dict[hari] = datetime.strptime(tgl_str, "%Y-%m-%d").strftime("%d/%m/%Y")
+                
+                # --- PERHITUNGAN METRIK SESUAI RUMUS ---
+                total_armada = df_hari['Nama Promotor'].nunique() # Jumlah promotor unik = armada
+                
+                # Call = Total outlet tercatat (penjumlahan outlet beli + tidak beli)
+                call = (
+                    df_hari['Outlet Beli Ada'].sum() + 
+                    df_hari['Outlet Ks Tb'].sum() + 
+                    df_hari['Outlet Ks B'].sum() + 
+                    df_hari['Outlet TB Ada A'].sum() + 
+                    df_hari['Outlet TB Ada P'].sum() + 
+                    df_hari['Outlet TB Ks'].sum()
+                )
+                
+                beli_ada = df_hari['Outlet Beli Ada'].sum()
+                beli_ks_tb = df_hari['Outlet Ks Tb'].sum()
+                beli_ks_b = df_hari['Outlet Ks B'].sum()
+                tba_aktif = df_hari['Outlet TB Ada A'].sum()
+                tba_pasif = df_hari['Outlet TB Ada P'].sum()
+                kosong = df_hari['Outlet TB Ks'].sum()
+                total_omset = df_hari['Omset (Bungkus)'].sum()
+                
+                # Average Dropsize = Total Omset / Total Outlet yang Beli (jika 0 maka 0)
+                total_outlet_beli = beli_ada + beli_ks_tb + beli_ks_b
+                avg_dropsize = round(total_omset / total_outlet_beli, 1) if total_outlet_beli > 0 else 0.0
+                
+                total_sampling = df_hari['Jumlah Rokok Sampling'].sum()
+                kontak_konsumen = df_hari['Jumlah Konsumen Trial'].sum()
+                laku_direct_selling = df_hari['Direct Selling'].sum()
+                
+                rekap_harian_dict[hari] = {
+                    "Tanggal": tanggal_harian_dict[hari],
+                    "Total Armada": total_armada,
+                    "Call": call,
+                    "Beli Ada": beli_ada,
+                    "Beli Ks Tambah": beli_ks_tb,
+                    "Beli Ks Baru": beli_ks_b,
+                    "TBA Aktif": tba_aktif,
+                    "TBA Pasif": tba_pasif,
+                    "Kosong": kosong,
+                    "Total Omset": total_omset,
+                    "Average Dropsize": avg_dropsize,
+                    "Total Sampling": total_sampling,
+                    "Kontak Konsumen": kontak_konsumen,
+                    "Laku Direct Selling": laku_direct_selling
+                }
+            else:
+                rekap_harian_dict[hari] = {
+                    "Tanggal": "-", "Total Armada": 0, "Call": 0, "Beli Ada": 0,
+                    "Beli Ks Tambah": 0, "Beli Ks Baru": 0, "TBA Aktif": 0, "TBA Pasif": 0,
+                    "Kosong": 0, "Total Omset": 0, "Average Dropsize": 0.0,
+                    "Total Sampling": 0, "Kontak Konsumen": 0, "Laku Direct Selling": 0
+                }
+
+        # Konversi ke DataFrame untuk ditampilkan sebagai tabel laporan
+        df_final_rekap = pd.DataFrame(rekap_harian_dict)
+        
+        st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
+        st.dataframe(df_final_rekap, use_container_width=True)
+        
+    else:
+        st.info(f"📭 Tidak ada data laporan untuk Minggu ke-{pilih_minggu}.")
+else:
+    st.info("📭 Belum ada data untuk direkap.")
+
+
 # ====================================================
 # TOMBOL BACKUP MANUAL KE GOOGLE SHEETS
 # ====================================================
