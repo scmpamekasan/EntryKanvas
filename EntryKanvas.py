@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from io import BytesIO
 import os
@@ -821,7 +822,7 @@ else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
 
   # ====================================================
-  # MODUL REKAPITULASI HARIAN WITH SCREENSHOT CAPTURE
+  # MODUL REKAPITULASI HARIAN WITH SCREENSHOT CAPTURE (BASE64 LOGO)
   # ====================================================
   st.markdown("---")
   st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
@@ -1025,6 +1026,17 @@ else:
           f"Zona {pilih_zona}" if pilih_zona != "Semua Zona" else "Semua Zona"
       )
 
+      # Konversi file gambar lokal ke base64 agar terbaca html2canvas dengan sempurna
+      def get_image_base64(path_file):
+        if os.path.exists(path_file):
+          with open(path_file, "rb") as f:
+            data = f.read()
+          encoded = base64.b64encode(data).decode()
+          return f"data:image/png;base64,{encoded}"
+        return ""
+
+      logo_base64 = get_image_base64("76aksara.png")
+
       # ====================================================
       # WADAH KHUSUS SCREENSHOT (DIV ID="REKAP-CONTAINER")
       # ====================================================
@@ -1034,8 +1046,15 @@ else:
           unsafe_allow_html=True,
       )
 
-      if os.path.exists("76aksara.png"):
-        st.image("76aksara.png", use_container_width=True)
+      if logo_base64:
+        st.markdown(
+            f"""
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="{logo_base64}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
 
       st.markdown(
           f"<h4 style='text-align: center; color: #0f172a;'>Laporan"
