@@ -213,85 +213,146 @@ st.markdown(
 )
 
 # ====================================================
-# FORM ENTRY DATA BARU (TERBUKA BEBAS TANPA PASSWORD)
+# FORM ENTRY DATA BARU & PREVIEW SEBELUM SIMPAN
 # ====================================================
-with st.form("form_laporan_kanvas"):
-  st.markdown("### 📝 Masukkan Data Laporan Baru")
+if "form_preview_data" not in st.session_state:
+  st.session_state["form_preview_data"] = None
 
-  col1, col2 = st.columns(2)
-  with col1:
-    tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
-    promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
-    brand_entry = st.selectbox("Brand", ["Djarum 76 Aksara"])
-  with col2:
-    zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
-    st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
+# Jika belum masuk mode preview, tampilkan form input biasa
+if st.session_state["form_preview_data"] is None:
+  with st.form("form_laporan_kanvas"):
+    st.markdown("### 📝 Masukkan Data Laporan Baru")
 
-    canvas_plan_entry = st.number_input(
-        "Canvas Plan", min_value=0, step=1, value=0
+    col1, col2 = st.columns(2)
+    with col1:
+      tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
+      promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
+      brand_entry = st.selectbox("Brand", ["Djarum 76 Aksara"])
+    with col2:
+      zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
+      st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
+
+      canvas_plan_entry = st.number_input(
+          "Canvas Plan", min_value=0, step=1, value=0
+      )
+      omset_entry = st.number_input(
+          "Omset (bungkus)", min_value=0, step=1, value=0
+      )
+
+    st.markdown("---")
+    st.markdown("#### 📊 Rincian Outlet")
+
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+      outlet_beli_ada = st.number_input(
+          "Jumlah Outlet Beli Ada", min_value=0, step=1, value=0
+      )
+      outlet_ks_tb = st.number_input(
+          "Jumlah Outlet Ks Tb", min_value=0, step=1, value=0
+      )
+    with col_b:
+      outlet_ks_b = st.number_input(
+          "Jumlah Outlet Ks B", min_value=0, step=1, value=0
+      )
+      outlet_tb_ada_a = st.number_input(
+          "Jumlah Outlet Tidak Beli Ada A", min_value=0, step=1, value=0
+      )
+    with col_c:
+      outlet_tb_ada_p = st.number_input(
+          "Jumlah Outlet Tidak Beli Ada P", min_value=0, step=1, value=0
+      )
+      outlet_tb_ks = st.number_input(
+          "Jumlah Outlet Tidak Beli Ks", min_value=0, step=1, value=0
+      )
+
+    st.markdown("---")
+    st.markdown("#### 🎁 Promosi Khusus (Promsus)")
+    p1, p2, p3, p4 = st.columns(4)
+    with p1:
+      promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=0)
+      promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=0)
+    with p2:
+      promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=0)
+      promsus_n_mie = st.number_input(
+          "N+ Mie Instan", min_value=0, step=1, value=0
+      )
+    with p3:
+      promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
+      outlet_buka_ecer = st.number_input(
+          "Outlet Buka Ecer", min_value=0, step=1, value=0
+      )
+    with p4:
+      jml_sampling = st.number_input(
+          "Jumlah Rokok Sampling", min_value=0, step=1, value=0
+      )
+      jml_trial = st.number_input(
+          "Jumlah Konsumen Trial", min_value=0, step=1, value=0
+      )
+
+    direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
+
+    btn_cek_preview = st.form_submit_button(
+        "👁️ Lihat Preview Laporan", type="primary"
     )
-    omset_entry = st.number_input("Omset (bungkus)", min_value=0, step=1, value=0)
+
+    if btn_cek_preview:
+      if not promotor_entry:
+        st.error("❌ Kolom Nama Promotor wajib diisi!")
+      else:
+        # Simpan data sementara ke session_state untuk diproses di tahap preview
+        st.session_state["form_preview_data"] = {
+            "tanggal": tanggal_entry.strftime("%Y-%m-%d"),
+            "nama_promotor": promotor_entry,
+            "zona": PROMOTOR_ZONA.get(promotor_entry, ""),
+            "brand": brand_entry,
+            "canvas_plan": canvas_plan_entry,
+            "outlet_beli_ada": outlet_beli_ada,
+            "outlet_ks_tb": outlet_ks_tb,
+            "outlet_ks_b": outlet_ks_b,
+            "outlet_tb_ada_a": outlet_tb_ada_a,
+            "outlet_tb_ada_p": outlet_tb_ada_p,
+            "outlet_tb_ks": outlet_tb_ks,
+            "omset_bungkus": omset_entry,
+            "promsus_10_1": promsus_10_1,
+            "promsus_3_1": promsus_3_1,
+            "promsus_2_1": promsus_2_1,
+            "promsus_1_1": promsus_1_1,
+            "promsus_n_mie_instan": promsus_n_mie,
+            "outlet_buka_ecer": outlet_buka_ecer,
+            "jumlah_rokok_sampling": jml_sampling,
+            "jumlah_konsumen_trial": jml_trial,
+            "direct_selling": direct_selling,
+            "waktu_submit": waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        st.rerun()
+
+# Jika sudah masuk mode preview, tampilkan ringkasan data beserta tombol Simpan / Batal
+else:
+  st.markdown("### 📋 Preview Data Laporan Baru")
+  st.info(
+      "Periksa kembali data di bawah ini sebelum disimpan ke database."
+      " Pastikan semuanya sudah benar."
+  )
+
+  data_preview = st.session_state["form_preview_data"]
+
+  # Ubah data dictionary menjadi DataFrame agar mudah dilihat secara rapi
+  df_preview_view = pd.DataFrame(
+      list(data_preview.items()), columns=["Keterangan", "Nilai"]
+  )
+  st.dataframe(df_preview_view, use_container_width=True, hide_index=True)
 
   st.markdown("---")
-  st.markdown("#### 📊 Rincian Outlet")
+  col_btn1, col_btn2 = st.columns(2)
 
-  col_a, col_b, col_c = st.columns(3)
-  with col_a:
-    outlet_beli_ada = st.number_input(
-        "Jumlah Outlet Beli Ada", min_value=0, step=1, value=0
-    )
-    outlet_ks_tb = st.number_input(
-        "Jumlah Outlet Ks Tb", min_value=0, step=1, value=0
-    )
-  with col_b:
-    outlet_ks_b = st.number_input(
-        "Jumlah Outlet Ks B", min_value=0, step=1, value=0
-    )
-    outlet_tb_ada_a = st.number_input(
-        "Jumlah Outlet Tidak Beli Ada A", min_value=0, step=1, value=0
-    )
-  with col_c:
-    outlet_tb_ada_p = st.number_input(
-        "Jumlah Outlet Tidak Beli Ada P", min_value=0, step=1, value=0
-    )
-    outlet_tb_ks = st.number_input(
-        "Jumlah Outlet Tidak Beli Ks", min_value=0, step=1, value=0
-    )
+  with col_btn1:
+    if st.button("❌ Batal / Edit Kembali", use_container_width=True):
+      st.session_state["form_preview_data"] = None
+      st.rerun()
 
-  st.markdown("---")
-  st.markdown("#### 🎁 Promosi Khusus (Promsus)")
-  p1, p2, p3, p4 = st.columns(4)
-  with p1:
-    promsus_10_1 = st.number_input("10+1", min_value=0, step=1, value=0)
-    promsus_1_1 = st.number_input("1+1", min_value=0, step=1, value=0)
-  with p2:
-    promsus_3_1 = st.number_input("3+1", min_value=0, step=1, value=0)
-    promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=0)
-  with p3:
-    promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
-    outlet_buka_ecer = st.number_input(
-        "Outlet Buka Ecer", min_value=0, step=1, value=0
-    )
-  with p4:
-    jml_sampling = st.number_input(
-        "Jumlah Rokok Sampling", min_value=0, step=1, value=0
-    )
-    jml_trial = st.number_input(
-        "Jumlah Konsumen Trial", min_value=0, step=1, value=0
-    )
-
-  direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
-
-  submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
-
-  if submit_button:
-    if not promotor_entry:
-      st.error("❌ Kolom Nama Promotor wajib diisi!")
-    else:
-      tgl_str = tanggal_entry.strftime("%Y-%m-%d")
-      waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
-      zona_final = PROMOTOR_ZONA.get(promotor_entry, "")
-
+  with col_btn2:
+    if st.button("🚀 Konfirmasi & Simpan Laporan", type="primary", use_container_width=True):
+      # Eksekusi simpan ke database SQLite
       conn = sqlite3.connect(DB_NAME)
       cursor = conn.cursor()
       cursor.execute(
@@ -305,59 +366,38 @@ with st.form("form_laporan_kanvas"):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
           (
-              tgl_str,
-              promotor_entry,
-              zona_final,
-              brand_entry,
-              canvas_plan_entry,
-              outlet_beli_ada,
-              outlet_ks_tb,
-              outlet_ks_b,
-              outlet_tb_ada_a,
-              outlet_tb_ada_p,
-              outlet_tb_ks,
-              omset_entry,
-              promsus_10_1,
-              promsus_3_1,
-              promsus_2_1,
-              promsus_1_1,
-              promsus_n_mie,
-              outlet_buka_ecer,
-              jml_sampling,
-              jml_trial,
-              direct_selling,
-              waktu_str,
+              data_preview["tanggal"],
+              data_preview["nama_promotor"],
+              data_preview["zona"],
+              data_preview["brand"],
+              data_preview["canvas_plan"],
+              data_preview["outlet_beli_ada"],
+              data_preview["outlet_ks_tb"],
+              data_preview["outlet_ks_b"],
+              data_preview["outlet_tb_ada_a"],
+              data_preview["outlet_tb_ada_p"],
+              data_preview["outlet_tb_ks"],
+              data_preview["omset_bungkus"],
+              data_preview["promsus_10_1"],
+              data_preview["promsus_3_1"],
+              data_preview["promsus_2_1"],
+              data_preview["promsus_1_1"],
+              data_preview["promsus_n_mie_instan"],
+              data_preview["outlet_buka_ecer"],
+              data_preview["jumlah_rokok_sampling"],
+              data_preview["jumlah_konsumen_trial"],
+              data_preview["direct_selling"],
+              data_preview["waktu_submit"],
           ),
       )
       conn.commit()
       conn.close()
 
-      backup_data = {
-          "tanggal": tgl_str,
-          "nama_promotor": promotor_entry,
-          "zona": zona_final,
-          "brand": brand_entry,
-          "canvas_plan": canvas_plan_entry,
-          "outlet_beli_ada": outlet_beli_ada,
-          "outlet_ks_tb": outlet_ks_tb,
-          "outlet_ks_b": outlet_ks_b,
-          "outlet_tb_ada_a": outlet_tb_ada_a,
-          "outlet_tb_ada_p": outlet_tb_ada_p,
-          "outlet_tb_ks": outlet_tb_ks,
-          "omset_bungkus": omset_entry,
-          "promsus_10_1": promsus_10_1,
-          "promsus_3_1": promsus_3_1,
-          "promsus_2_1": promsus_2_1,
-          "promsus_1_1": promsus_1_1,
-          "promsus_n_mie_instan": promsus_n_mie,
-          "outlet_buka_ecer": outlet_buka_ecer,
-          "jumlah_rokok_sampling": jml_sampling,
-          "jumlah_konsumen_trial": jml_trial,
-          "direct_selling": direct_selling,
-          "waktu_submit": waktu_str,
-      }
-      backup_ke_gsh_otomatis(backup_data)
+      # Kirim backup otomatis ke Google Sheets
+      backup_ke_gsh_otomatis(data_preview)
 
+      # Reset session preview dan berikan notifikasi sukses
+      st.session_state["form_preview_data"] = None
       st.session_state["notifikasi_sukses"] = (
           "🎉 Data laporan kanvas berhasil disimpan ke database!"
       )
@@ -397,7 +437,6 @@ with tab_sudah:
         " melakukan entry laporan hari ini."
     )
 
-    # Membuat list khusus yang hanya berisi Nama Promotor dan Zona
     data_sudah_list = []
     for p in promotor_sudah_entry:
       data_sudah_list.append(
@@ -427,7 +466,7 @@ with tab_belum:
     st.success(
         "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
     )
-    
+
 # ====================================================
 # KEAMANAN: VERIFIKASI PASSWORD UNTUK PANEL ADMIN & REKAP
 # ====================================================
@@ -512,7 +551,7 @@ else:
           idx_brand = (
               list_brand.index(row_edit["Brand"])
               if row_edit["Brand"] in list_brand
-              else 3
+              else 0
           )
           e_brand = st.selectbox("Brand", list_brand, index=idx_brand)
 
@@ -775,7 +814,7 @@ else:
   # ====================================================
   st.markdown("---")
   st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
-  
+
   st.markdown(
       """
       <style>
@@ -979,9 +1018,10 @@ else:
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
           f" {pilih_minggu} - {pilih_tahun}"
       )
-      
-      st.image("76aksara.png", use_container_width=True)
-      
+
+      if os.path.exists("76aksara.png"):
+        st.image("76aksara.png", use_container_width=True)
+
       st.table(df_final_rekap)
     else:
       st.info(
