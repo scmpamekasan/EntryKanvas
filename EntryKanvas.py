@@ -264,7 +264,7 @@ def buat_gambar_rekap(df, judul):
       cellText=cell_text,
       colLabels=col_labels,
       rowLabels=row_labels,
-      loc="upper center",
+      loc="center",
       cellLoc="center",
       bbox=[0, 0, 1, 1],
   )
