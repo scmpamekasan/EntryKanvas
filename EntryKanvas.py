@@ -202,6 +202,9 @@ if "notifikasi_sukses" in st.session_state:
   st.balloons()
   st.success(st.session_state.pop("notifikasi_sukses"))
 
+# Tampilkan Logo di Bagian Atas Jika Tersedia
+if os.path.exists("76aksara.png"):
+  st.image("76aksara.png", use_container_width=True)
 
 st.markdown(
     "<h2 style='text-align: center;'>📋 Form Entry Laporan Kanvas</h2>",
@@ -214,7 +217,7 @@ st.markdown(
 )
 
 # ====================================================
-# FORM ENTRY DATA BARU (TANPA PASSWORD - TERBUKA BEBAS)
+# FORM ENTRY DATA BARU (TERBUKA BEBAS TANPA PASSWORD)
 # ====================================================
 with st.form("form_laporan_kanvas"):
   st.markdown("### 📝 Masukkan Data Laporan Baru")
@@ -333,10 +336,75 @@ with st.form("form_laporan_kanvas"):
       conn.commit()
       conn.close()
 
+      # Kirim backup otomatis ke Google Sheets jika webhook aktif
+      backup_data = {
+          "tanggal": tgl_str,
+          "nama_promotor": promotor_entry,
+          "zona": zona_final,
+          "brand": brand_entry,
+          "canvas_plan": canvas_plan_entry,
+          "outlet_beli_ada": outlet_beli_ada,
+          "outlet_ks_tb": outlet_ks_tb,
+          "outlet_ks_b": outlet_ks_b,
+          "outlet_tb_ada_a": outlet_tb_ada_a,
+          "outlet_tb_ada_p": outlet_tb_ada_p,
+          "outlet_tb_ks": outlet_tb_ks,
+          "omset_bungkus": omset_entry,
+          "promsus_10_1": promsus_10_1,
+          "promsus_3_1": promsus_3_1,
+          "promsus_2_1": promsus_2_1,
+          "promsus_1_1": promsus_1_1,
+          "promsus_n_mie_instan": promsus_n_mie,
+          "outlet_buka_ecer": outlet_buka_ecer,
+          "jumlah_rokok_sampling": jml_sampling,
+          "jumlah_konsumen_trial": jml_trial,
+          "direct_selling": direct_selling,
+          "waktu_submit": waktu_str,
+      }
+      backup_ke_gsh_otomatis(backup_data)
+
       st.session_state["notifikasi_sukses"] = (
           "🎉 Data laporan kanvas berhasil disimpan ke database!"
       )
       st.rerun()
+
+# ====================================================
+# MONITORING PROMOTOR BELUM ENTRY HARI INI (TERBUKA BEBAS)
+# ====================================================
+st.markdown("---")
+st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
+st.markdown(
+    f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>",
+    unsafe_allow_html=True,
+)
+
+df_data_global = muat_data()
+promotor_sudah_entry = []
+if not df_data_global.empty:
+  df_hari_ini = df_data_global[df_data_global["Tanggal"] == hari_ini]
+  promotor_sudah_entry = (
+      df_hari_ini["Nama Promotor"].dropna().unique().tolist()
+  )
+
+daftar_belum_entry = []
+for promotor, zona in PROMOTOR_ZONA.items():
+  if promotor not in promotor_sudah_entry:
+    daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
+
+df_belum_entry = pd.DataFrame(daftar_belum_entry)
+
+if not df_belum_entry.empty:
+  st.warning(
+      "⚠️ Terdapat **"
+      f"{len(df_belum_entry)}** promotor yang belum melakukan entry laporan"
+      " hari ini."
+  )
+  st.dataframe(df_belum_entry, use_container_width=True)
+else:
+  st.success(
+      "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
+  )
+
 # ====================================================
 # KEAMANAN: VERIFIKASI PASSWORD UNTUK PANEL ADMIN & REKAP
 # ====================================================
@@ -356,7 +424,6 @@ if not st.session_state["admin_authenticated"]:
     btn_login_admin = st.form_submit_button("🔓 Buka Area Admin", type="primary")
 
     if btn_login_admin:
-      # Password admin (bisa diganti sesuai keinginan)
       if password_input == "admin123":
         st.session_state["admin_authenticated"] = True
         st.success("✅ Password benar!")
@@ -892,8 +959,7 @@ else:
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
           f" {pilih_minggu} - {pilih_tahun}"
       )
-      st.image("76aksara.png", use_container_width=True)
-      
+
       st.table(df_final_rekap)
     else:
       st.info(
@@ -963,43 +1029,3 @@ else:
       )
     else:
       st.info("📭 Belum ada data di database lokal untuk di-backup.")
-
-
-  # ====================================================
-  # MONITORING PROMOTOR BELUM ENTRY HARI INI
-  # ====================================================
-  st.markdown("---")
-  st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
-  st.markdown(
-      f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>",
-      unsafe_allow_html=True,
-  )
-
-  promotor_sudah_entry = []
-  if not df_data.empty:
-    df_hari_ini = df_data[df_data["Tanggal"] == hari_ini]
-    promotor_sudah_entry = (
-        df_hari_ini["Nama Promotor"].dropna().unique().tolist()
-    )
-
-  daftar_belum_entry = []
-  for promotor, zona in PROMOTOR_ZONA.items():
-    if promotor not in promotor_sudah_entry:
-      daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
-
-  df_belum_entry = pd.DataFrame(daftar_belum_entry)
-
-  if not df_belum_entry.empty:
-    st.warning(
-        "⚠️ Terdapat **"
-        f"{len(df_belum_entry)}** promotor yang belum melakukan entry laporan"
-        " hari ini."
-    )
-    st.dataframe(df_belum_entry, use_container_width=True)
-  else:
-    st.success(
-        "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
-    )
-
-
-
