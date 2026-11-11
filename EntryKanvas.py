@@ -570,7 +570,7 @@ if not df_rekap_data.empty:
                     "Beli Ks Tambah": 0, "Beli Ks Baru": 0, "TBA Aktif": 0, "TBA Pasif": 0,
                     "Kosong": 0, "Total Omset": 0, "Average Dropsize": 0.0,
                     "% Availability Sebelum": "0.0%", "% Availability Sesudah": "0.0%",
-                    "EC": 0, "% EC": "0.0%", "% Outlet Ecer": "0.0%",
+                    "EC": 0, "% EC": "0.0%", "% Repeat": "0.0%", "% OOS": "0.0%", "% Outlet Ecer": "0.0%",
                     "Total Sampling": 0, "Kontak Konsumen": 0, "Laku Direct Selling": 0
                 }
 
