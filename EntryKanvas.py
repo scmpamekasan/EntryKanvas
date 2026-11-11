@@ -207,35 +207,34 @@ def buat_gambar_rekap(df, judul):
   """
   has_logo = os.path.exists("76aksara.png")
 
-  fig_height = 20.0 if has_logo else 17.5
+  fig_height = 20.0 if has_logo else 18.5
   fig = plt.figure(figsize=(18, fig_height), facecolor="white")
 
-  # ===== JUDUL (center di tengah halaman, full width) =====
+  # ===== 1. JUDUL (Di bagian paling atas, rata tengah) =====
   ax_title = fig.add_axes([0.0, 0.945, 1.0, 0.040])
   ax_title.axis("off")
   ax_title.text(
-      0.5, 0.5, judul,
-      ha="center", va="center",
-      fontsize=28, fontweight="bold", color="#0f172a",
-      fontfamily="sans-serif"
+      0.5,
+      0.5,
+      judul,
+      ha="center",
+      va="center",
+      fontsize=26,
+      fontweight="bold",
+      color="#0f172a",
+      fontfamily="sans-serif",
   )
 
-  # ===== LOGO (full width dari ujung ke ujung) =====
+  # ===== 2. LOGO (Full-width dari ujung ke ujung di bawah judul) =====
   if has_logo:
-    # Tentukan lebar logo (misal: 30% dari lebar halaman, yaitu 0.30)
-    # Posisi 'left' dihitung agar pas di tengah: (1.0 - 0.30) / 2 = 0.35
-    logo_width = 1.0
-    logo_left = 0.35
-    logo_height = 0.1
-    logo_bottom = 0.850
-
-    ax_logo = fig.add_axes([logo_left, logo_bottom, logo_width, logo_height])
+    ax_logo = fig.add_axes([0.0, 0.840, 1.0, 0.095])
     ax_logo.axis("off")
-
     try:
       logo_img = PILImage.open("76aksara.png")
-      # Menggunakan aspect='equal' atau 'auto' dengan penyesuaian sumbu agar tidak gepeng
-      ax_logo.imshow(logo_img, aspect="equal")
+      # Menggunakan aspect="auto" agar logo merentang penuh selebar halaman
+      ax_logo.imshow(logo_img, aspect="auto")
+      ax_logo.set_xlim(0, logo_img.width)
+      ax_logo.set_ylim(logo_img.height, 0)
     except Exception:
       ax_logo.text(
           0.5,
@@ -248,31 +247,24 @@ def buat_gambar_rekap(df, judul):
       )
 
     table_bottom = 0.02
-    table_height = 0.815
+    table_height = 0.800
   else:
     table_bottom = 0.03
-    table_height = 0.90
-    
-  # ===== TABEL =====
-  ax_table = fig.add_axes([0.02, table_bottom, 0.96, table_height])
+    table_height = 0.900
+
+  # ===== 3. TABEL DATA REKAP (Di bagian bawah) =====
+  ax_table = fig.add_axes([0.03, table_bottom, 0.94, table_height])
   ax_table.axis("off")
 
-  cell_text = [[str(v) for v in row] for row in df.values.tolist()]
-  col_labels = [str(c) for c in df.columns]
-  row_labels = [str(r) for r in df.index]
-
+  table_data = [df.columns.tolist()] + df.values.tolist()
   table = ax_table.table(
-      cellText=cell_text,
-      colLabels=col_labels,
-      rowLabels=row_labels,
-      loc="upper center",
+      cellText=table_data,
+      loc="center",
       cellLoc="center",
-      bbox=[0, 0, 1, 1],
   )
   table.auto_set_font_size(False)
-  table.set_fontsize(18)
-  table.scale(1.0, 1.85)
-
+  table.set_fontsize(10)
+  table.scale(1.2, 1.5)
   # Styling: background lebih terang + border lebih tebal
   for (row, col), cell in table.get_celld().items():
     cell.set_edgecolor("#64748b")
