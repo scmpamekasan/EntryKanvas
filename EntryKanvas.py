@@ -96,7 +96,7 @@ def inisialisasi_database():
             nama_promotor TEXT,
             zona TEXT,
             brand TEXT,
-            canvas_plan TEXT,
+            canvas_plan INTEGER,
             outlet_beli_ada INTEGER,
             outlet_ks_tb INTEGER,
             outlet_ks_b INTEGER,
@@ -123,12 +123,9 @@ def inisialisasi_database():
     
     if 'pic' in columns and 'nama_promotor' not in columns:
         cursor.execute("ALTER TABLE kanvas RENAME COLUMN pic TO nama_promotor")
-    if 'cp' in columns and 'canvas_plan' not in columns:
-        cursor.execute("ALTER TABLE kanvas RENAME COLUMN cp TO canvas_plan")
     if 'zona' not in columns:
         cursor.execute("ALTER TABLE kanvas ADD COLUMN zona TEXT")
         
-    # Tambahan kolom Promsus jika belum ada di database lama
     kolom_promsus = {
         'promsus_10_1': 'INTEGER',
         'promsus_3_1': 'INTEGER',
@@ -199,7 +196,7 @@ with st.form("form_laporan_kanvas"):
         zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
         st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
         
-        canvas_plan_entry = st.text_input("Canvas Plan")
+        canvas_plan_entry = st.number_input("Canvas Plan", min_value=0, step=1, value=0)
         omset_entry = st.number_input("Omset (bungkus)", min_value=0, step=1, value=0)
 
     st.markdown("---")
@@ -237,8 +234,8 @@ with st.form("form_laporan_kanvas"):
     submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
 
     if submit_button:
-        if not promotor_entry or not canvas_plan_entry:
-            st.error("❌ Kolom Nama Promotor dan Canvas Plan wajib diisi!")
+        if not promotor_entry:
+            st.error("❌ Kolom Nama Promotor wajib diisi!")
         else:
             tgl_str = tanggal_entry.strftime("%Y-%m-%d")
             waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
@@ -308,7 +305,7 @@ if not df_data.empty:
                 e_zona_otomatis = PROMOTOR_ZONA.get(e_promotor, "-")
                 st.text_input("Zona (Otomatis)", value=e_zona_otomatis, disabled=True)
                 
-                e_canvas_plan = st.text_input("Canvas Plan", value=str(row_edit['Canvas Plan']))
+                e_canvas_plan = st.number_input("Canvas Plan", min_value=0, step=1, value=int(row_edit['Canvas Plan']))
                 e_omset = st.number_input("Omset (bungkus)", min_value=0, step=1, value=int(row_edit['Omset (Bungkus)']))
 
             st.markdown("##### Rincian Outlet")
@@ -343,8 +340,8 @@ if not df_data.empty:
             btn_update = st.form_submit_button("💾 Perbarui Data", type="primary")
 
             if btn_update:
-                if not e_promotor or not e_canvas_plan:
-                    st.error("❌ Nama Promotor dan Canvas Plan tidak boleh kosong!")
+                if not e_promotor:
+                    st.error("❌ Nama Promotor tidak boleh kosong!")
                 else:
                     tgl_edit_str = e_tanggal.strftime("%Y-%m-%d")
                     zona_edit_final = PROMOTOR_ZONA.get(e_promotor, "")
