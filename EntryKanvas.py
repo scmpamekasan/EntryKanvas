@@ -507,10 +507,7 @@ else:
           )
 
           list_brand = [
-              "Djarum Black Matcha Siro",
-              "Djarum Black Matcha Kuro",
-              "Djarum Black Matcha Kretek",
-              "Lainnya",
+              "Djarum 76 Aksara",
           ]
           idx_brand = (
               list_brand.index(row_edit["Brand"])
