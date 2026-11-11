@@ -109,7 +109,6 @@ def inisialisasi_database():
     """)
     conn.commit()
 
-    # Cek & migrasi jika database masih memakai struktur/kolom lama (pic & cp)
     cursor.execute("PRAGMA table_info(kanvas)")
     columns = [col[1] for col in cursor.fetchall()]
     
@@ -162,7 +161,6 @@ with st.form("form_laporan_kanvas"):
         promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
         brand_entry = st.selectbox("Brand", ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"])
     with col2:
-        # Otomatis menampilkan zona berdasarkan promotor yang dipilih di form
         zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
         st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
         
@@ -233,7 +231,6 @@ if not df_data.empty:
         list_id = df_data['ID'].tolist()
         id_dipilih = st.selectbox("Pilih ID Data yang Ingin Di-edit:", list_id)
         
-        # Ambil data spesifik berdasarkan ID
         row_edit = df_data[df_data['ID'] == id_dipilih].iloc[0]
         
         with st.form("form_edit_kanvas"):
@@ -247,7 +244,6 @@ if not df_data.empty:
                 idx_promotor = list_promotor.index(row_edit['Nama Promotor']) if row_edit['Nama Promotor'] in list_promotor else 0
                 e_promotor = st.selectbox("Nama Promotor", list_promotor, index=idx_promotor)
                 
-                # Menentukan index pilihan brand
                 list_brand = ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"]
                 idx_brand = list_brand.index(row_edit['Brand']) if row_edit['Brand'] in list_brand else 3
                 e_brand = st.selectbox("Brand", list_brand, index=idx_brand)
@@ -370,3 +366,33 @@ if not df_data.empty:
                     st.error("❌ Password salah!")
 else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
+
+# ====================================================
+# MONITORING PROMOTOR BELUM ENTRY HARI INI
+# ====================================================
+st.markdown("---")
+st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
+st.markdown(f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>", unsafe_allow_html=True)
+
+# Ambil daftar promotor yang sudah entry pada hari ini
+promotor_sudah_entry = []
+if not df_data.empty:
+    df_hari_ini = df_data[df_data['Tanggal'] == hari_ini]
+    promotor_sudah_entry = df_hari_ini['Nama Promotor'].dropna().unique().tolist()
+
+# Cari promotor yang belum melakukan entry
+daftar_belum_entry = []
+for promotor, zona in PROMOTOR_ZONA.items():
+    if promotor not in promotor_sudah_entry:
+        daftar_belum_entry.append({
+            "Nama Promotor": promotor,
+            "Zona": zona
+        })
+
+df_belum_entry = pd.DataFrame(daftar_belum_entry)
+
+if not df_belum_entry.empty:
+    st.warning(f"⚠️ Terdapat **{len(df_belum_entry)}** promotor yang belum melakukan entry laporan hari ini.")
+    st.dataframe(df_belum_entry, use_container_width=True)
+else:
+    st.success("🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini.")
