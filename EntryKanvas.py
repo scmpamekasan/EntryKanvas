@@ -202,10 +202,6 @@ if "notifikasi_sukses" in st.session_state:
   st.balloons()
   st.success(st.session_state.pop("notifikasi_sukses"))
 
-# Tampilkan Logo di Bagian Atas Jika Tersedia
-if os.path.exists("76aksara.png"):
-  st.image("76aksara.png", use_container_width=True)
-
 st.markdown(
     "<h2 style='text-align: center;'>📋 Form Entry Laporan Kanvas</h2>",
     unsafe_allow_html=True,
@@ -979,7 +975,8 @@ else:
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
           f" {pilih_minggu} - {pilih_tahun}"
       )
-
+      st.image("76aksara.png", use_container_width=True)
+      
       st.table(df_final_rekap)
     else:
       st.info(
