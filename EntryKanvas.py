@@ -337,44 +337,6 @@ with st.form("form_laporan_kanvas"):
           "🎉 Data laporan kanvas berhasil disimpan ke database!"
       )
       st.rerun()
-
-  # ====================================================
-  # MONITORING PROMOTOR BELUM ENTRY HARI INI
-  # ====================================================
-  st.markdown("---")
-  st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
-  st.markdown(
-      f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>",
-      unsafe_allow_html=True,
-  )
-
-  promotor_sudah_entry = []
-  if not df_data.empty:
-    df_hari_ini = df_data[df_data["Tanggal"] == hari_ini]
-    promotor_sudah_entry = (
-        df_hari_ini["Nama Promotor"].dropna().unique().tolist()
-    )
-
-  daftar_belum_entry = []
-  for promotor, zona in PROMOTOR_ZONA.items():
-    if promotor not in promotor_sudah_entry:
-      daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
-
-  df_belum_entry = pd.DataFrame(daftar_belum_entry)
-
-  if not df_belum_entry.empty:
-    st.warning(
-        "⚠️ Terdapat **"
-        f"{len(df_belum_entry)}** promotor yang belum melakukan entry laporan"
-        " hari ini."
-    )
-    st.dataframe(df_belum_entry, use_container_width=True)
-  else:
-    st.success(
-        "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
-    )
-
-
 # ====================================================
 # KEAMANAN: VERIFIKASI PASSWORD UNTUK PANEL ADMIN & REKAP
 # ====================================================
@@ -1001,3 +963,43 @@ else:
       )
     else:
       st.info("📭 Belum ada data di database lokal untuk di-backup.")
+
+
+  # ====================================================
+  # MONITORING PROMOTOR BELUM ENTRY HARI INI
+  # ====================================================
+  st.markdown("---")
+  st.markdown("### 🔍 Monitoring: Promotor Belum Entry Hari Ini")
+  st.markdown(
+      f"<p style='color: #64748b;'>Tanggal Monitoring: <b>{hari_ini}</b></p>",
+      unsafe_allow_html=True,
+  )
+
+  promotor_sudah_entry = []
+  if not df_data.empty:
+    df_hari_ini = df_data[df_data["Tanggal"] == hari_ini]
+    promotor_sudah_entry = (
+        df_hari_ini["Nama Promotor"].dropna().unique().tolist()
+    )
+
+  daftar_belum_entry = []
+  for promotor, zona in PROMOTOR_ZONA.items():
+    if promotor not in promotor_sudah_entry:
+      daftar_belum_entry.append({"Nama Promotor": promotor, "Zona": zona})
+
+  df_belum_entry = pd.DataFrame(daftar_belum_entry)
+
+  if not df_belum_entry.empty:
+    st.warning(
+        "⚠️ Terdapat **"
+        f"{len(df_belum_entry)}** promotor yang belum melakukan entry laporan"
+        " hari ini."
+    )
+    st.dataframe(df_belum_entry, use_container_width=True)
+  else:
+    st.success(
+        "🎉 Luar biasa! Seluruh promotor telah melakukan entry laporan hari ini."
+    )
+
+
+
