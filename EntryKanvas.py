@@ -43,7 +43,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ====================================================
-# INISIALISASI DATABASE SQLITE
+# INISIALISASI & MIGRASI DATABASE SQLITE
 # ====================================================
 DB_NAME = "laporan_kanvas.db"
 
@@ -54,9 +54,9 @@ def inisialisasi_database():
         CREATE TABLE IF NOT EXISTS kanvas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tanggal TEXT,
-            pic TEXT,
+            nama_promotor TEXT,
             brand TEXT,
-            cp TEXT,
+            canvas_plan TEXT,
             outlet_beli_ada INTEGER,
             outlet_ks_tb INTEGER,
             outlet_ks_b INTEGER,
@@ -68,6 +68,17 @@ def inisialisasi_database():
         )
     """)
     conn.commit()
+
+    # Cek & migrasi jika database masih memakai struktur/kolom lama (pic & cp)
+    cursor.execute("PRAGMA table_info(kanvas)")
+    columns = [col[1] for col in cursor.fetchall()]
+    
+    if 'pic' in columns and 'nama_promotor' not in columns:
+        cursor.execute("ALTER TABLE kanvas RENAME COLUMN pic TO nama_promotor")
+    if 'cp' in columns and 'canvas_plan' not in columns:
+        cursor.execute("ALTER TABLE kanvas RENAME COLUMN cp TO canvas_plan")
+        
+    conn.commit()
     conn.close()
 
 inisialisasi_database()
@@ -76,7 +87,7 @@ def muat_data():
     conn = sqlite3.connect(DB_NAME)
     try:
         df = pd.read_sql_query("""
-            SELECT id AS ID, tanggal AS Tanggal, pic AS PIC, brand AS Brand, cp AS CP,
+            SELECT id AS ID, tanggal AS Tanggal, nama_promotor AS [Nama Promotor], brand AS Brand, canvas_plan AS [Canvas Plan],
                    outlet_beli_ada AS [Outlet Beli Ada], outlet_ks_tb AS [Outlet Ks Tb], 
                    outlet_ks_b AS [Outlet Ks B], outlet_tb_ada_a AS [Outlet TB Ada A], 
                    outlet_tb_ada_p AS [Outlet TB Ada P], outlet_tb_ks AS [Outlet TB Ks], 
@@ -98,19 +109,19 @@ st.markdown("<h2 style='text-align: center;'>📋 Form Entry Laporan Kanvas</h2>
 st.markdown("<p style='text-align: center; color: #64748b;'>Sistem Perekaman Data Kanvas Lapangan</p>", unsafe_allow_html=True)
 
 # ====================================================
-# FORM ENTRY DATA
+# FORM ENTRY DATA BARU
 # ====================================================
 with st.form("form_laporan_kanvas"):
-    st.markdown("### 📝 Masukkan Data Laporan")
+    st.markdown("### 📝 Masukkan Data Laporan Baru")
     
     col1, col2 = st.columns(2)
     with col1:
         tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
-        pic_entry = st.text_input("PIC (Penanggung Jawab)")
+        promotor_entry = st.text_input("Nama Promotor")
         brand_entry = st.selectbox("Brand", ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"])
     with col2:
-        cp_entry = st.text_input("CP (Contact Person / Titik Lokasi)")
-        omset_entry = st.number_input("Omszet (bungkus)", min_value=0, step=1, value=0)
+        canvas_plan_entry = st.text_input("Canvas Plan")
+        omset_entry = st.number_input("Omset (bungkus)", min_value=0, step=1, value=0)
 
     st.markdown("---")
     st.markdown("#### 📊 Rincian Outlet")
@@ -129,8 +140,8 @@ with st.form("form_laporan_kanvas"):
     submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
 
     if submit_button:
-        if not pic_entry or not cp_entry:
-            st.error("❌ Kolom PIC dan CP wajib diisi!")
+        if not promotor_entry or not canvas_plan_entry:
+            st.error("❌ Kolom Nama Promotor dan Canvas Plan wajib diisi!")
         else:
             tgl_str = tanggal_entry.strftime("%Y-%m-%d")
             waktu_str = waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S")
@@ -139,12 +150,12 @@ with st.form("form_laporan_kanvas"):
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO kanvas (
-                    tanggal, pic, brand, cp, outlet_beli_ada, outlet_ks_tb, 
+                    tanggal, nama_promotor, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
                     outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
                     omset_bungkus, waktu_submit
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                tgl_str, pic_entry, brand_entry, cp_entry, outlet_beli_ada, 
+                tgl_str, promotor_entry, brand_entry, canvas_plan_entry, outlet_beli_ada, 
                 outlet_ks_tb, outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, 
                 outlet_tb_ks, omset_entry, waktu_str
             ))
@@ -155,7 +166,7 @@ with st.form("form_laporan_kanvas"):
             st.rerun()
 
 # ====================================================
-# PANEL ADMIN: LOG REPORT, DOWNLOAD, & HAPUS
+# PANEL ADMIN & LOG LAPORAN
 # ====================================================
 st.markdown("---")
 st.markdown("### 📊 Panel Admin & Log Laporan Kanvas")
@@ -166,8 +177,82 @@ if not df_data.empty:
     st.dataframe(df_data, use_container_width=True)
     
     st.markdown("---")
-    st.markdown("### 🛠️ Manajemen Data (Unduh & Hapus)")
+    st.markdown("### 🛠️ Manajemen Data (Edit, Unduh, & Hapus)")
     
+    # ====================================================
+    # MENU EDIT ENTRY
+    # ====================================================
+    with st.expander("✏️ Edit Entry Data (Koreksi Kesalahan Input)"):
+        list_id = df_data['ID'].tolist()
+        id_dipilih = st.selectbox("Pilih ID Data yang Ingin Di-edit:", list_id)
+        
+        # Ambil data spesifik berdasarkan ID
+        row_edit = df_data[df_data['ID'] == id_dipilih].iloc[0]
+        
+        with st.form("form_edit_kanvas"):
+            st.markdown(f"#### Edit Data ID #{id_dipilih}")
+            
+            e_col1, e_col2 = st.columns(2)
+            with e_col1:
+                e_tanggal = st.date_input("Tanggal", value=datetime.strptime(str(row_edit['Tanggal']), "%Y-%m-%d").date())
+                e_promotor = st.text_input("Nama Promotor", value=str(row_edit['Nama Promotor']))
+                
+                # Menentukan index pilihan brand
+                list_brand = ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"]
+                idx_brand = list_brand.index(row_edit['Brand']) if row_edit['Brand'] in list_brand else 3
+                e_brand = st.selectbox("Brand", list_brand, index=idx_brand)
+                
+            with e_col2:
+                e_canvas_plan = st.text_input("Canvas Plan", value=str(row_edit['Canvas Plan']))
+                e_omset = st.number_input("Omset (bungkus)", min_value=0, step=1, value=int(row_edit['Omset (Bungkus)']))
+
+            st.markdown("##### Rincian Outlet")
+            e_a, e_b, e_c = st.columns(3)
+            with e_a:
+                e_outlet_beli_ada = st.number_input("Outlet Beli Ada", min_value=0, step=1, value=int(row_edit['Outlet Beli Ada']))
+                e_outlet_ks_tb = st.number_input("Outlet Ks Tb", min_value=0, step=1, value=int(row_edit['Outlet Ks Tb']))
+            with e_b:
+                e_outlet_ks_b = st.number_input("Outlet Ks B", min_value=0, step=1, value=int(row_edit['Outlet Ks B']))
+                e_outlet_tb_ada_a = st.number_input("Outlet TB Ada A", min_value=0, step=1, value=int(row_edit['Outlet TB Ada A']))
+            with e_c:
+                e_outlet_tb_ada_p = st.number_input("Outlet TB Ada P", min_value=0, step=1, value=int(row_edit['Outlet TB Ada P']))
+                e_outlet_tb_ks = st.number_input("Outlet TB Ks", min_value=0, step=1, value=int(row_edit['Outlet TB Ks']))
+
+            btn_update = st.form_submit_button("💾 Perbarui Data", type="primary")
+
+            if btn_update:
+                if not e_promotor or not e_canvas_plan:
+                    st.error("❌ Nama Promotor dan Canvas Plan tidak boleh kosong!")
+                else:
+                    tgl_edit_str = e_tanggal.strftime("%Y-%m-%d")
+                    conn = sqlite3.connect(DB_NAME)
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE kanvas
+                        SET tanggal = ?,
+                            nama_promotor = ?,
+                            brand = ?,
+                            canvas_plan = ?,
+                            outlet_beli_ada = ?,
+                            outlet_ks_tb = ?,
+                            outlet_ks_b = ?,
+                            outlet_tb_ada_a = ?,
+                            outlet_tb_ada_p = ?,
+                            outlet_tb_ks = ?,
+                            omset_bungkus = ?
+                        WHERE id = ?
+                    """, (
+                        tgl_edit_str, e_promotor, e_brand, e_canvas_plan,
+                        e_outlet_beli_ada, e_outlet_ks_tb, e_outlet_ks_b,
+                        e_outlet_tb_ada_a, e_outlet_tb_ada_p, e_outlet_tb_ks,
+                        e_omset, id_dipilih
+                    ))
+                    conn.commit()
+                    conn.close()
+
+                    st.session_state['notifikasi_sukses'] = f"✏️ Data ID #{id_dipilih} berhasil diperbarui!"
+                    st.rerun()
+
     col_d, col_h = st.columns(2)
     
     # --- DOWNLOAD EXCEL ---
