@@ -202,7 +202,7 @@ with st.form("form_laporan_kanvas"):
     with col1:
         tanggal_entry = st.date_input("Date", value=datetime.now(TZ_WIB).date())
         promotor_entry = st.selectbox("Nama Promotor", list(PROMOTOR_ZONA.keys()))
-        brand_entry = st.selectbox("Brand", ["Djarum Black Matcha Siro", "Djarum Black Matcha Kuro", "Djarum Black Matcha Kretek", "Lainnya"])
+        brand_entry = st.selectbox("Brand", ["Djarum 76 Aksara"])
     with col2:
         zona_otomatis = PROMOTOR_ZONA.get(promotor_entry, "-")
         st.text_input("Zona (Otomatis)", value=zona_otomatis, disabled=True)
