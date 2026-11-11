@@ -212,8 +212,57 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # ====================================================
-# FORM ENTRY DATA BARU & PREVIEW SEBELUM SIMPAN
+# FUNGSI SIMPAN KE DATABASE
+# ====================================================
+def simpan_ke_database(data_preview):
+  conn = sqlite3.connect(DB_NAME)
+  cursor = conn.cursor()
+  cursor.execute(
+      """
+        INSERT INTO kanvas (
+            tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
+            outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
+            omset_bungkus, promsus_10_1, promsus_3_1, promsus_2_1, promsus_1_1, 
+            promsus_n_mie_instan, outlet_buka_ecer, jumlah_rokok_sampling, jumlah_konsumen_trial, 
+            direct_selling, waktu_submit
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """,
+      (
+          data_preview["tanggal"],
+          data_preview["nama_promotor"],
+          data_preview["zona"],
+          data_preview["brand"],
+          data_preview["canvas_plan"],
+          data_preview["outlet_beli_ada"],
+          data_preview["outlet_ks_tb"],
+          data_preview["outlet_ks_b"],
+          data_preview["outlet_tb_ada_a"],
+          data_preview["outlet_tb_ada_p"],
+          data_preview["outlet_tb_ks"],
+          data_preview["omset_bungkus"],
+          data_preview["promsus_10_1"],
+          data_preview["promsus_3_1"],
+          data_preview["promsus_2_1"],
+          data_preview["promsus_1_1"],
+          data_preview["promsus_n_mie_instan"],
+          data_preview["outlet_buka_ecer"],
+          data_preview["jumlah_rokok_sampling"],
+          data_preview["jumlah_konsumen_trial"],
+          data_preview["direct_selling"],
+          data_preview["waktu_submit"],
+      ),
+  )
+  conn.commit()
+  conn.close()
+
+  # Kirim backup otomatis ke Google Sheets
+  backup_ke_gsh_otomatis(data_preview)
+
+
+# ====================================================
+# FORM ENTRY DATA BARU & PILIHAN PREVIEW / LANGSUNG KIRIM
 # ====================================================
 if "form_preview_data" not in st.session_state:
   st.session_state["form_preview_data"] = None
@@ -291,16 +340,19 @@ if st.session_state["form_preview_data"] is None:
 
     direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
 
-    btn_cek_preview = st.form_submit_button(
-        "👁️ Lihat Preview Laporan", type="primary"
-    )
+    st.markdown("---")
+    # Pilihan Tombol: Preview atau Langsung Kirim
+    btn_col1, btn_col2 = st.columns(2)
+    with btn_col1:
+      btn_preview = st.form_submit_button("👁️ Lihat Preview", type="secondary")
+    with btn_col2:
+      btn_langsung_kirim = st.form_submit_button("🚀 Langsung Kirim", type="primary")
 
-    if btn_cek_preview:
+    if btn_preview or btn_langsung_kirim:
       if not promotor_entry:
         st.error("❌ Kolom Nama Promotor wajib diisi!")
       else:
-        # Simpan data sementara ke session_state untuk diproses di tahap preview
-        st.session_state["form_preview_data"] = {
+        data_sementara = {
             "tanggal": tanggal_entry.strftime("%Y-%m-%d"),
             "nama_promotor": promotor_entry,
             "zona": PROMOTOR_ZONA.get(promotor_entry, ""),
@@ -324,7 +376,16 @@ if st.session_state["form_preview_data"] is None:
             "direct_selling": direct_selling,
             "waktu_submit": waktu_sekarang.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        st.rerun()
+
+        if btn_preview:
+          st.session_state["form_preview_data"] = data_sementara
+          st.rerun()
+        elif btn_langsung_kirim:
+          simpan_ke_database(data_sementara)
+          st.session_state["notifikasi_sukses"] = (
+              "🎉 Data laporan kanvas berhasil dikirim langsung ke database!"
+          )
+          st.rerun()
 
 # Jika sudah masuk mode preview, tampilkan ringkasan data beserta tombol Simpan / Batal
 else:
@@ -336,7 +397,6 @@ else:
 
   data_preview = st.session_state["form_preview_data"]
 
-  # Ubah data dictionary menjadi DataFrame agar mudah dilihat secara rapi
   df_preview_view = pd.DataFrame(
       list(data_preview.items()), columns=["Keterangan", "Nilai"]
   )
@@ -351,52 +411,11 @@ else:
       st.rerun()
 
   with col_btn2:
-    if st.button("🚀 Konfirmasi & Simpan Laporan", type="primary", use_container_width=True):
-      # Eksekusi simpan ke database SQLite
-      conn = sqlite3.connect(DB_NAME)
-      cursor = conn.cursor()
-      cursor.execute(
-          """
-            INSERT INTO kanvas (
-                tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
-                outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
-                omset_bungkus, promsus_10_1, promsus_3_1, promsus_2_1, promsus_1_1, 
-                promsus_n_mie_instan, outlet_buka_ecer, jumlah_rokok_sampling, jumlah_konsumen_trial, 
-                direct_selling, waktu_submit
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-          (
-              data_preview["tanggal"],
-              data_preview["nama_promotor"],
-              data_preview["zona"],
-              data_preview["brand"],
-              data_preview["canvas_plan"],
-              data_preview["outlet_beli_ada"],
-              data_preview["outlet_ks_tb"],
-              data_preview["outlet_ks_b"],
-              data_preview["outlet_tb_ada_a"],
-              data_preview["outlet_tb_ada_p"],
-              data_preview["outlet_tb_ks"],
-              data_preview["omset_bungkus"],
-              data_preview["promsus_10_1"],
-              data_preview["promsus_3_1"],
-              data_preview["promsus_2_1"],
-              data_preview["promsus_1_1"],
-              data_preview["promsus_n_mie_instan"],
-              data_preview["outlet_buka_ecer"],
-              data_preview["jumlah_rokok_sampling"],
-              data_preview["jumlah_konsumen_trial"],
-              data_preview["direct_selling"],
-              data_preview["waktu_submit"],
-          ),
-      )
-      conn.commit()
-      conn.close()
+    if st.button(
+        "🚀 Konfirmasi & Simpan Laporan", type="primary", use_container_width=True
+    ):
+      simpan_ke_database(data_preview)
 
-      # Kirim backup otomatis ke Google Sheets
-      backup_ke_gsh_otomatis(data_preview)
-
-      # Reset session preview dan berikan notifikasi sukses
       st.session_state["form_preview_data"] = None
       st.session_state["notifikasi_sukses"] = (
           "🎉 Data laporan kanvas berhasil disimpan ke database!"
