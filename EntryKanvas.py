@@ -109,6 +109,7 @@ def inisialisasi_database():
             promsus_2_1 INTEGER,
             promsus_1_1 INTEGER,
             promsus_n_mie_instan INTEGER,
+            outlet_buka_ecer INTEGER,
             jumlah_rokok_sampling INTEGER,
             jumlah_konsumen_trial INTEGER,
             direct_selling INTEGER,
@@ -134,6 +135,7 @@ def inisialisasi_database():
         'promsus_2_1': 'INTEGER',
         'promsus_1_1': 'INTEGER',
         'promsus_n_mie_instan': 'INTEGER',
+        'outlet_buka_ecer': 'INTEGER',
         'jumlah_rokok_sampling': 'INTEGER',
         'jumlah_konsumen_trial': 'INTEGER',
         'direct_selling': 'INTEGER'
@@ -161,6 +163,7 @@ def muat_data():
                    promsus_2_1 AS [Promsus 2+1],
                    promsus_1_1 AS [Promsus 1+1],
                    promsus_n_mie_instan AS [N+ Mie Instan],
+                   outlet_buka_ecer AS [Outlet Buka Ecer],
                    jumlah_rokok_sampling AS [Jumlah Rokok Sampling],
                    jumlah_konsumen_trial AS [Jumlah Konsumen Trial],
                    direct_selling AS [Direct Selling],
@@ -224,10 +227,12 @@ with st.form("form_laporan_kanvas"):
         promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=0)
     with p3:
         promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=0)
-        jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=0)
+        outlet_buka_ecer = st.number_input("Outlet Buka Ecer", min_value=0, step=1, value=0)
     with p4:
+        jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=0)
         jml_trial = st.number_input("Jumlah Konsumen Trial", min_value=0, step=1, value=0)
-        direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
+    
+    direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=0)
 
     submit_button = st.form_submit_button("🚀 Simpan Laporan", type="primary")
 
@@ -246,14 +251,14 @@ with st.form("form_laporan_kanvas"):
                     tanggal, nama_promotor, zona, brand, canvas_plan, outlet_beli_ada, outlet_ks_tb, 
                     outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, outlet_tb_ks, 
                     omset_bungkus, promsus_10_1, promsus_3_1, promsus_2_1, promsus_1_1, 
-                    promsus_n_mie_instan, jumlah_rokok_sampling, jumlah_konsumen_trial, 
+                    promsus_n_mie_instan, outlet_buka_ecer, jumlah_rokok_sampling, jumlah_konsumen_trial, 
                     direct_selling, waktu_submit
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 tgl_str, promotor_entry, zona_final, brand_entry, canvas_plan_entry, outlet_beli_ada, 
                 outlet_ks_tb, outlet_ks_b, outlet_tb_ada_a, outlet_tb_ada_p, 
                 outlet_tb_ks, omset_entry, promsus_10_1, promsus_3_1, promsus_2_1, 
-                promsus_1_1, promsus_n_mie, jml_sampling, jml_trial, direct_selling, waktu_str
+                promsus_1_1, promsus_n_mie, outlet_buka_ecer, jml_sampling, jml_trial, direct_selling, waktu_str
             ))
             conn.commit()
             conn.close()
@@ -328,10 +333,12 @@ if not df_data.empty:
                 e_promsus_n_mie = st.number_input("N+ Mie Instan", min_value=0, step=1, value=int(row_edit['N+ Mie Instan']))
             with ep3:
                 e_promsus_2_1 = st.number_input("2+1", min_value=0, step=1, value=int(row_edit['Promsus 2+1']))
-                e_jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=int(row_edit['Jumlah Rokok Sampling']))
+                e_outlet_buka_ecer = st.number_input("Outlet Buka Ecer", min_value=0, step=1, value=int(row_edit['Outlet Buka Ecer']))
             with ep4:
+                e_jml_sampling = st.number_input("Jumlah Rokok Sampling", min_value=0, step=1, value=int(row_edit['Jumlah Rokok Sampling']))
                 e_jml_trial = st.number_input("Jumlah Konsumen Trial", min_value=0, step=1, value=int(row_edit['Jumlah Konsumen Trial']))
-                e_direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=int(row_edit['Direct Selling']))
+            
+            e_direct_selling = st.number_input("Direct Selling", min_value=0, step=1, value=int(row_edit['Direct Selling']))
 
             btn_update = st.form_submit_button("💾 Perbarui Data", type="primary")
 
@@ -363,6 +370,7 @@ if not df_data.empty:
                             promsus_2_1 = ?,
                             promsus_1_1 = ?,
                             promsus_n_mie_instan = ?,
+                            outlet_buka_ecer = ?,
                             jumlah_rokok_sampling = ?,
                             jumlah_konsumen_trial = ?,
                             direct_selling = ?
@@ -372,7 +380,7 @@ if not df_data.empty:
                         e_outlet_beli_ada, e_outlet_ks_tb, e_outlet_ks_b,
                         e_outlet_tb_ada_a, e_outlet_tb_ada_p, e_outlet_tb_ks,
                         e_omset, e_promsus_10_1, e_promsus_3_1, e_promsus_2_1,
-                        e_promsus_1_1, e_promsus_n_mie, e_jml_sampling, e_jml_trial,
+                        e_promsus_1_1, e_promsus_n_mie, e_outlet_buka_ecer, e_jml_sampling, e_jml_trial,
                         e_direct_selling, id_dipilih
                     ))
                     conn.commit()
