@@ -460,19 +460,20 @@ else:
     st.info("📭 Belum ada data laporan kanvas yang tercatat.")
 
 # ====================================================
-# MODUL REKAPITULASI HARIAN (KOMPAK & SCROLLABLE)
+# MODUL REKAPITULASI HARIAN (FULL TANPA SCROLL)
 # ====================================================
 st.markdown("---")
 st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
 
-# Styling CSS untuk merapatkan tinggi baris (row height) pada st.dataframe
+# Styling CSS untuk merapatkan tinggi baris (row height) agar tetap kompak
 st.markdown("""
     <style>
-    /* Mengecilkan padding sel/baris pada tabel dataframe agar lebih ringkas */
-    div[data-testid="stDataFrame"] td {
-        padding-top: 4px !important;
-        padding-bottom: 4px !important;
-        min-height: 25px !important;
+    /* Merapatkan tinggi baris pada tabel statis */
+    table {
+        font-size: 14px;
+    }
+    th, td {
+        padding: 6px 10px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -571,8 +572,8 @@ if not df_rekap_data.empty:
         
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke-{pilih_minggu} Tahun {pilih_tahun}")
         
-        # Tinggi kontainer (height) diatur pas (misal 500px) dengan baris yang sudah diperkecil via CSS di atas
-        st.dataframe(df_final_rekap, use_container_width=True, height=500)
+        # Menggunakan st.table agar tampil terbuka full tanpa kotak scroll
+        st.table(df_final_rekap)
         
     else:
         st.info(f"📭 Tidak ada data laporan untuk Minggu ke-{pilih_minggu}.")
