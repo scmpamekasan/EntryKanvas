@@ -578,7 +578,7 @@ if not df_rekap_data.empty:
 
         
         st.markdown(f"#### 📅 Laporan Rekapitulasi Minggu ke {pilih_minggu} - {pilih_tahun}")
-        st.image("76aksara.png", width=450)
+        st.image("76aksara.png", width=1080)
         
         # Menggunakan st.table agar tampil terbuka full tanpa kotak scroll
         st.table(df_final_rekap)
