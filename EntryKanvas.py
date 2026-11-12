@@ -201,37 +201,48 @@ def muat_data():
   return df
 
 
+from io import BytesIO
+import os
+import matplotlib.pyplot as plt
+from PIL import Image as PILImage
+
+
 def buat_gambar_rekap(df, judul):
-  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG).
-  Tampilan dibuat mirip screenshot: Judul → Logo full-width → Tabel rapi.
+  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG)
+
+  dengan tampilan profesional, elegan, dan tidak kaku.
   """
   has_logo = os.path.exists("76aksara.png")
 
-  fig_height = 20.0 if has_logo else 18.5
-  fig = plt.figure(figsize=(18, fig_height), facecolor="white")
+  # Ukuran canvas dibuat sedikit lebih tinggi untuk ruang napas visual yang pas
+  fig_height = 21.0 if has_logo else 19.0
+  fig = plt.figure(figsize=(18, fig_height), facecolor="#f8fafc")
 
-  # ===== 1. JUDUL (Di bagian paling atas, rata tengah) =====
-  ax_title = fig.add_axes([0.0, 0.945, 1.0, 0.040])
-  ax_title.axis("off")
-  ax_title.text(
+  # ===== 1. HEADER JUDUL DENGAN LATAR BELAKANG ELEGAN =====
+  # Membuat kotak banner latar belakang judul agar terlihat modern
+  ax_banner = fig.add_axes([0.03, 0.930, 0.94, 0.055])
+  ax_banner.set_facecolor("#0f172a")
+  ax_banner.axis("off")
+
+  ax_banner.text(
       0.5,
       0.5,
       judul,
       ha="center",
       va="center",
-      fontsize=35,
+      fontsize=22,
       fontweight="bold",
-      color="#0f172a",
+      color="white",
       fontfamily="sans-serif",
   )
 
-  # ===== 2. LOGO (Full-width dari ujung ke ujung di bawah judul) =====
+  # ===== 2. LOGO DI TENGAH DENGAN BORDER HALUS =====
   if has_logo:
-    ax_logo = fig.add_axes([0.02, 0.840, 0.99, 0.095])
+    # Lebar disamakan dengan tabel (0.94), diposisikan rapi di bawah judul
+    ax_logo = fig.add_axes([0.03, 0.820, 0.94, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
-      # Menggunakan aspect="auto" agar logo merentang penuh selebar halaman
       ax_logo.imshow(logo_img, aspect="auto")
       ax_logo.set_xlim(0, logo_img.width)
       ax_logo.set_ylim(logo_img.height, 0)
@@ -246,63 +257,49 @@ def buat_gambar_rekap(df, judul):
           color="#64748b",
       )
 
-    table_bottom = 0.02
-    table_height = 0.800
+    table_bottom = 0.03
+    table_height = 0.770
   else:
     table_bottom = 0.03
-    table_height = 0.900
-    
-  # ===== TABEL =====
-  ax_table = fig.add_axes([0.02, table_bottom, 0.99, table_height])
+    table_height = 0.880
+
+  # ===== 3. TABEL REKAPITULASI DATA =====
+  ax_table = fig.add_axes([0.03, table_bottom, 0.94, table_height])
   ax_table.axis("off")
 
-  cell_text = [[str(v) for v in row] for row in df.values.tolist()]
-  col_labels = [str(c) for c in df.columns]
-  row_labels = [str(r) for r in df.index]
-
+  table_data = [df.columns.tolist()] + df.values.tolist()
   table = ax_table.table(
-      cellText=cell_text,
-      colLabels=col_labels,
-      rowLabels=row_labels,
-      loc="upper center",
+      cellText=table_data,
+      loc="center",
       cellLoc="center",
-      bbox=[0, 0, 1, 1],
   )
   table.auto_set_font_size(False)
-  table.set_fontsize(18)
-  table.scale(1.0, 1.85)
+  table.set_fontsize(10)
+  table.scale(1.2, 1.6)  # Ruang baris dibuat lebih longgar agar tidak kaku
 
-  # Styling: background lebih terang + border lebih tebal
-  for (row, col), cell in table.get_celld().items():
-    cell.set_edgecolor("#64748b")
-    cell.set_linewidth(2.0)
-    cell.PAD = 0.12
-
-    if row == 0:  # Header (Senin, Selasa, ...)
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=20)
-      cell.set_facecolor("#e2e8f0")
-    elif col == -1:  # Label baris kiri
-      cell.set_text_props(weight="bold", color="#1e293b", fontsize=18, ha="left")
-      cell.set_facecolor("#f1f5f9")
+  # Styling tabel profesional (Header elegan & zebra striping halus)
+  for (row_idx, col_idx), cell in table.get_celld().items():
+    cell.set_edgecolor("#cbd5e1")  # Warna garis tepi abu-abu lembut
+    if row_idx == 0:
+      cell.set_facecolor("#1e293b")  # Warna header slate gelap yang mewah
+      cell.set_text_props(color="white", fontweight="bold", fontsize=11)
     else:
-      # Background lebih terang (putih bersih)
-      cell.set_facecolor("#ffffff")
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=18)
+      # Warna selang-seling baris yang sangat lembut (zebra striping)
+      if row_idx % 2 == 0:
+        cell.set_facecolor("#f1f5f9")
+      else:
+        cell.set_facecolor("#ffffff")
+      cell.set_text_props(color="#334155", fontsize=10)
 
-  buf = BytesIO()
+  # Simpan ke buffer memori dengan resolusi tinggi (DPI 300)
+  buffer_img = BytesIO()
   plt.savefig(
-      buf,
-      format="png",
-      bbox_inches="tight",
-      dpi=180,
-      facecolor="white",
-      edgecolor="none",
-      pad_inches=0.08,
+      buffer_img, format="png", bbox_inches="tight", dpi=300, facecolor="#f8fafc"
   )
-  buf.seek(0)
   plt.close(fig)
-  return buf
-
+  buffer_img.seek(0)
+  return buffer_img
+  
 
 # Notifikasi sukses
 if "notifikasi_sukses" in st.session_state:
