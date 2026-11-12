@@ -269,6 +269,13 @@ def buat_gambar_rekap(df, judul):
           va="center",
           fontsize=13,
           color="#64748b",
+          bbox=dict(
+            boxstyle="round,pad=0.5",  # Kotak dengan sudut melengkung halus
+            facecolor="#000000",  # Warna latar belakang dalam kotak (abu-abu terang)
+            edgecolor="#FFFFFF",  # Warna garis border/bingkai (abu-abu gelap)
+            linewidth=2.0,  # Ketebalan garis border
+        ),
+   
       )
 
     table_bottom = 0.02
