@@ -991,14 +991,14 @@ else:
 
     col_rk1, col_rk2, col_rk3 = st.columns(3)
     with col_rk1:
-      daftar_zona_pilihan = ["Semua Zona"] + sorted(
+      daftar_zona_pilihan = ["All Zona"] + sorted(
           list(set(PROMOTOR_ZONA.values()))
       )
       pilih_zona = st.selectbox(
           "Pilih Zona", daftar_zona_pilihan, key="rekap_zona"
       )
 
-    if pilih_zona != "Semua Zona":
+    if pilih_zona != "All Zona":
       df_filtered_zona = df_rekap_data[df_rekap_data["Zona"] == pilih_zona]
     else:
       df_filtered_zona = df_rekap_data.copy()
@@ -1167,7 +1167,7 @@ else:
       df_final_rekap = pd.DataFrame(rekap_harian_dict)
 
       label_zona_judul = (
-          f"Zona {pilih_zona}" if pilih_zona != "Semua Zona" else "Semua Zona"
+          f"Zona {pilih_zona}" if pilih_zona != "All Zona" else "All Zona"
       )
       st.markdown(
           f"#### Laporan Rekapitulasi {label_zona_judul} - Minggu ke"
