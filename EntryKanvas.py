@@ -243,10 +243,10 @@ def buat_gambar_rekap(df, judul):
         fontweight="bold",
         color="#0f172a",
         fontfamily="sans-serif",
-        linespacing=1.1,
+        linespacing=1.4,
     )
 
-    # Area logo 76aksara.png di sebelah kanan (left=0.34, width=0.67)
+    # Area logo 76aksara.png di sebelah kanan (left=0.2, width=0.8)
     ax_logo = fig.add_axes([0.2, 0.840, 0.8, 0.095])
     ax_logo.axis("off")
     try:
