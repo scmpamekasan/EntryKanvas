@@ -232,18 +232,24 @@ def buat_gambar_rekap(df, judul):
     # Area teks di sebelah kiri (left=0.02, width=0.30)
     ax_text = fig.add_axes([0.02, 0.840, 0.30, 0.095])
     ax_text.axis("off")
-    # Menggunakan \n untuk membuat 2 baris dengan ukuran font besar & bold
+
     ax_text.text(
-        0.0,
+        0.5,
         0.5,
         "DSO\nSURABAYA BARAT",
         ha="center",
         va="center",
-        fontsize=35,
+        fontsize=24,  # Disesuaikan agar proporsional di dalam kotak
         fontweight="bold",
         color="#0f172a",
         fontfamily="sans-serif",
-        linespacing=1.4,
+        linespacing=1.2,
+        bbox=dict(
+            boxstyle="round,pad=0.5",  # Kotak dengan sudut melengkung halus
+            facecolor="#f1f5f9",  # Warna latar belakang dalam kotak (abu-abu terang)
+            edgecolor="#64748b",  # Warna garis border/bingkai (abu-abu gelap)
+            linewidth=2.0,  # Ketebalan garis border
+        ),
     )
 
     # Area logo 76aksara.png di sebelah kanan (left=0.2, width=0.8)
