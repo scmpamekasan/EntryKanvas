@@ -203,11 +203,7 @@ def muat_data():
 
 
 def buat_gambar_rekap(df, judul):
-  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG).
-
-  Tampilan: Judul → Logo full-width sejajar tabel → Tabel rapi terisi "URAIAN" di
-  pojok kiri atas.
-  """
+  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG)."""
   has_logo = os.path.exists("76aksara.png")
 
   fig_height = 20.0 if has_logo else 18.5
@@ -274,21 +270,21 @@ def buat_gambar_rekap(df, judul):
   table.set_fontsize(28)
   table.scale(1.0, 1.85)
 
-  # Styling: background terang + border + pengisian pojok kiri atas ("URAIAN")
+  # Styling tabel + label "URAIAN" di pojok kiri atas
   for (row, col), cell in table.get_celld().items():
     cell.set_edgecolor("#64748b")
     cell.set_linewidth(2.0)
     cell.PAD = 0.12
 
-    if row == 0 and col == -1:  # Mengisi sel kosong di pojok kiri atas
+    if row == 0 and col == -1:
       cell.set_text_props(
           text="URAIAN", weight="bold", color="#0f172a", fontsize=24
       )
       cell.set_facecolor("#e2e8f0")
-    elif row == 0:  # Header kolom (Senin, Selasa, ...)
+    elif row == 0:
       cell.set_text_props(weight="bold", color="#0f172a", fontsize=24)
       cell.set_facecolor("#e2e8f0")
-    elif col == -1:  # Label baris kiri
+    elif col == -1:
       cell.set_text_props(
           weight="bold", color="#1e293b", fontsize=22, ha="left"
       )
@@ -598,6 +594,268 @@ else:
   if not df_data.empty:
     st.dataframe(df_data, use_container_width=True)
 
+    st.markdown("---")
+    st.markdown("### 🛠️ Manajemen Data (Edit, Unduh, & Hapus)")
+
+    with st.expander("✏️ Edit Entry Data (Koreksi Kesalahan Input)"):
+      list_id = df_data["ID"].tolist()
+      id_dipilih = st.selectbox("Pilih ID Data yang Ingin Di-edit:", list_id)
+      row_edit = df_data[df_data["ID"] == id_dipilih].iloc[0]
+
+      with st.form("form_edit_kanvas"):
+        st.markdown(f"#### Edit Data ID #{id_dipilih}")
+        e_col1, e_col2 = st.columns(2)
+        with e_col1:
+          e_tanggal = st.date_input(
+              "Tanggal",
+              value=datetime.strptime(
+                  str(row_edit["Tanggal"]), "%Y-%m-%d"
+              ).date(),
+          )
+          list_promotor = list(PROMOTOR_ZONA.keys())
+          idx_promotor = (
+              list_promotor.index(row_edit["Nama Promotor"])
+              if row_edit["Nama Promotor"] in list_promotor
+              else 0
+          )
+          e_promotor = st.selectbox(
+              "Nama Promotor", list_promotor, index=idx_promotor
+          )
+          list_brand = ["Djarum 76 Aksara"]
+          e_brand = st.selectbox("Brand", list_brand, index=0)
+        with e_col2:
+          e_zona_otomatis = PROMOTOR_ZONA.get(e_promotor, "-")
+          st.text_input("Zona (Otomatis)", value=e_zona_otomatis, disabled=True)
+          e_canvas_plan = st.number_input(
+              "Canvas Plan",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Canvas Plan"]),
+          )
+          e_omset = st.number_input(
+              "Omset (bungkus)",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Omset (Bungkus)"]),
+          )
+
+        st.markdown("##### Rincian Outlet")
+        e_a, e_b, e_c = st.columns(3)
+        with e_a:
+          e_outlet_beli_ada = st.number_input(
+              "Outlet Beli Ada",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet Beli Ada"]),
+          )
+          e_outlet_ks_tb = st.number_input(
+              "Outlet Ks Tb",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet Ks Tb"]),
+          )
+        with e_b:
+          e_outlet_ks_b = st.number_input(
+              "Outlet Ks B",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet Ks B"]),
+          )
+          e_outlet_tb_ada_a = st.number_input(
+              "Outlet TB Ada A",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet TB Ada A"]),
+          )
+        with e_c:
+          e_outlet_tb_ada_p = st.number_input(
+              "Outlet TB Ada P",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet TB Ada P"]),
+          )
+          e_outlet_tb_ks = st.number_input(
+              "Outlet TB Ks",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet TB Ks"]),
+          )
+
+        st.markdown("##### Promosi Khusus (Promsus)")
+        ep1, ep2, ep3, ep4 = st.columns(4)
+        with ep1:
+          e_promsus_10_1 = st.number_input(
+              "10+1", min_value=0, step=1, value=int(row_edit["Promsus 10+1"])
+          )
+          e_promsus_1_1 = st.number_input(
+              "1+1", min_value=0, step=1, value=int(row_edit["Promsus 1+1"])
+          )
+        with ep2:
+          e_promsus_3_1 = st.number_input(
+              "3+1", min_value=0, step=1, value=int(row_edit["Promsus 3+1"])
+          )
+          e_promsus_n_mie = st.number_input(
+              "N+ Mie Instan",
+              min_value=0,
+              step=1,
+              value=int(row_edit["N+ Mie Instan"]),
+          )
+        with ep3:
+          e_promsus_2_1 = st.number_input(
+              "2+1", min_value=0, step=1, value=int(row_edit["Promsus 2+1"])
+          )
+          e_outlet_buka_ecer = st.number_input(
+              "Outlet Buka Ecer",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Outlet Buka Ecer"]),
+          )
+        with ep4:
+          e_jml_sampling = st.number_input(
+              "Jumlah Rokok Sampling",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Jumlah Rokok Sampling"]),
+          )
+          e_jml_trial = st.number_input(
+              "Jumlah Konsumen Trial",
+              min_value=0,
+              step=1,
+              value=int(row_edit["Jumlah Konsumen Trial"]),
+          )
+
+        e_direct_selling = st.number_input(
+            "Direct Selling",
+            min_value=0,
+            step=1,
+            value=int(row_edit["Direct Selling"]),
+        )
+
+        btn_update = st.form_submit_button("💾 Perbarui Data", type="primary")
+
+        if btn_update:
+          if not e_promotor:
+            st.error("❌ Nama Promotor tidak boleh kosong!")
+          else:
+            tgl_edit_str = e_tanggal.strftime("%Y-%m-%d")
+            zona_edit_final = PROMOTOR_ZONA.get(e_promotor, "")
+
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                            UPDATE kanvas
+                            SET tanggal = ?, nama_promotor = ?, zona = ?, brand = ?, canvas_plan = ?,
+                                outlet_beli_ada = ?, outlet_ks_tb = ?, outlet_ks_b = ?, outlet_tb_ada_a = ?,
+                                outlet_tb_ada_p = ?, outlet_tb_ks = ?, omset_bungkus = ?, promsus_10_1 = ?,
+                                promsus_3_1 = ?, promsus_2_1 = ?, promsus_1_1 = ?, promsus_n_mie_instan = ?,
+                                outlet_buka_ecer = ?, jumlah_rokok_sampling = ?, jumlah_konsumen_trial = ?, direct_selling = ?
+                            WHERE id = ?
+                        """,
+                (
+                    tgl_edit_str,
+                    e_promotor,
+                    zona_edit_final,
+                    e_brand,
+                    e_canvas_plan,
+                    e_outlet_beli_ada,
+                    e_outlet_ks_tb,
+                    e_outlet_ks_b,
+                    e_outlet_tb_ada_a,
+                    e_outlet_tb_ada_p,
+                    e_outlet_tb_ks,
+                    e_omset,
+                    e_promsus_10_1,
+                    e_promsus_3_1,
+                    e_promsus_2_1,
+                    e_promsus_1_1,
+                    e_promsus_n_mie,
+                    e_outlet_buka_ecer,
+                    e_jml_sampling,
+                    e_jml_trial,
+                    e_direct_selling,
+                    id_dipilih,
+                ),
+            )
+            conn.commit()
+            conn.close()
+
+            st.session_state["notifikasi_sukses"] = (
+                f"✏️ Data ID #{id_dipilih} berhasil diperbarui!"
+            )
+            st.rerun()
+
+    col_d, col_h = st.columns(2)
+    with col_d:
+      st.markdown("#### 📥 Unduh Laporan")
+      opsi_unduh = st.selectbox(
+          "Pilih Rentang Data:", ["Semua Data", "Hari Ini"]
+      )
+      df_export = (
+          df_data[df_data["Tanggal"] == hari_ini]
+          if opsi_unduh == "Hari Ini"
+          else df_data.copy()
+      )
+      output = BytesIO()
+      with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df_export.to_excel(writer, index=False, sheet_name="Laporan Kanvas")
+
+      st.download_button(
+          label=f"💾 Download Excel ({opsi_unduh})",
+          data=output.getvalue(),
+          file_name=(
+              f"laporan_kanvas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+          ),
+          mime=(
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          ),
+          use_container_width=True,
+      )
+
+    with col_h:
+      st.markdown("#### 🗑️ Hapus Data")
+      opsi_hapus = st.selectbox(
+          "Pilih Data yang Dihapus:", ["Hari Ini", "Semua Data"], key="opt_hapus"
+      )
+      if st.button("🔥 Hapus Data", type="secondary", use_container_width=True):
+        st.session_state["konfirmasi_hapus"] = True
+        st.session_state["target_hapus"] = opsi_hapus
+
+    if st.session_state.get("konfirmasi_hapus", False):
+      st.warning(
+          "⚠️ Anda akan menghapus data kategori:"
+          f" **{st.session_state['target_hapus']}** secara permanen."
+      )
+      password_admin = st.text_input(
+          "Masukkan Password Konfirmasi Hapus:", type="password"
+      )
+      c1, c2 = st.columns(2)
+      with c1:
+        if st.button("❌ Batal"):
+          st.session_state["konfirmasi_hapus"] = False
+          st.rerun()
+      with c2:
+        if st.button("✅ Ya, Hapus Permanen", type="primary"):
+          if password_admin == "admin123":
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            if st.session_state["target_hapus"] == "Hari Ini":
+              cursor.execute("DELETE FROM kanvas WHERE tanggal = ?", (hari_ini,))
+            else:
+              cursor.execute("DELETE FROM kanvas")
+            conn.commit()
+            conn.close()
+            st.session_state.pop("konfirmasi_hapus", None)
+            st.session_state["notifikasi_sukses"] = "🗑️ Data berhasil dihapus."
+            st.rerun()
+          else:
+            st.error("❌ Password salah!")
+  else:
+    st.info("📭 Belum ada data laporan kanvas yang tercatat.")
+
+  # ====================================================
+  # MODUL REKAPITULASI HARIAN & MINGGUAN
+  # ====================================================
   st.markdown("---")
   st.markdown("### 📈 Rekapitulasi Harian & Mingguan (Report Table)")
 
@@ -831,3 +1089,64 @@ else:
       )
   else:
     st.info("📭 Belum ada data untuk direkap.")
+
+  # ====================================================
+  # TOMBOL BACKUP MANUAL KE GOOGLE SHEETS
+  # ====================================================
+  st.markdown("---")
+  st.markdown("### ☁️ Backup Data ke Google Sheets")
+  st.markdown(
+      "Gunakan tombol di bawah ini jika Anda ingin melakukan sinkronisasi atau"
+      " backup ulang seluruh data lokal ke Google Sheets secara manual."
+  )
+
+  if st.button("🔄 Kirim/Backup Semua Data ke Google Sheets", type="primary"):
+    df_lokal = muat_data()
+
+    if not df_lokal.empty:
+      progress_bar = st.progress(0)
+      total_data = len(df_lokal)
+      sukses = 0
+
+      for i, row in df_lokal.iterrows():
+        payload_manual = {
+            "id": int(row["ID"]),
+            "tanggal": str(row["Tanggal"]),
+            "nama_promotor": str(row["Nama Promotor"]),
+            "zona": str(row["Zona"]),
+            "brand": str(row["Brand"]),
+            "canvas_plan": int(row["Canvas Plan"]),
+            "outlet_beli_ada": int(row["Outlet Beli Ada"]),
+            "outlet_ks_tb": int(row["Outlet Ks Tb"]),
+            "outlet_ks_b": int(row["Outlet Ks B"]),
+            "outlet_tb_ada_a": int(row["Outlet TB Ada A"]),
+            "outlet_tb_ada_p": int(row["Outlet TB Ada P"]),
+            "outlet_tb_ks": int(row["Outlet TB Ks"]),
+            "omset_bungkus": int(row["Omset (Bungkus)"]),
+            "promsus_10_1": int(row["Promsus 10+1"]),
+            "promsus_3_1": int(row["Promsus 3+1"]),
+            "promsus_2_1": int(row["Promsus 2+1"]),
+            "promsus_1_1": int(row["Promsus 1+1"]),
+            "promsus_n_mie_instan": int(row["N+ Mie Instan"]),
+            "outlet_buka_ecer": int(row["Outlet Buka Ecer"]),
+            "jumlah_rokok_sampling": int(row["Jumlah Rokok Sampling"]),
+            "jumlah_konsumen_trial": int(row["Jumlah Konsumen Trial"]),
+            "direct_selling": int(row["Direct Selling"]),
+            "waktu_submit": str(row["Waktu Submit"]),
+        }
+
+        try:
+          response = requests.post(WEBHOOK_URL, json=payload_manual, timeout=10)
+          if response.status_code == 200:
+            sukses += 1
+        except Exception:
+          pass
+
+        progress_bar.progress((i + 1) / total_data)
+
+      st.success(
+          f"✅ Berhasil mem-backup {sukses} dari {total_data} data ke Google"
+          " Sheets!"
+      )
+    else:
+      st.info("📭 Belum ada data di database lokal untuk di-backup.")
