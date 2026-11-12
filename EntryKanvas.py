@@ -230,7 +230,7 @@ def buat_gambar_rekap(df, judul):
   # ===== 2. HEADER ATAS: TEKS 2 BARIS DI KIRI & LOGO DI KANAN =====
   if has_logo:
     # Area teks di sebelah kiri (left=0.02, width=0.30)
-    ax_text = fig.add_axes([0.02, 0.840, 0.30, 0.095])
+    ax_text = fig.add_axes([0.0 , 0.840, 0.30, 0.095])
     ax_text.axis("off")
 
     ax_text.text(
