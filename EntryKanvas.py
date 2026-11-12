@@ -202,9 +202,10 @@ def muat_data():
 
 
 def buat_gambar_rekap(df, judul):
-  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG)
+  """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG).
 
-  dengan tulisan "DSO Surabaya Barat" di sebelah kiri logo 76aksara.png.
+  Teks "DSO" & "SURABAYA BARAT" (2 baris, tebal, ukuran besar) di sebelah kiri
+  logo.
   """
   has_logo = os.path.exists("76aksara.png")
 
@@ -226,21 +227,23 @@ def buat_gambar_rekap(df, judul):
       fontfamily="sans-serif",
   )
 
-  # ===== 2. HEADER ATAS: TEKS DI SEBELAH KIRI & LOGO DI SEBELAH KANAN =====
+  # ===== 2. HEADER ATAS: TEKS 2 BARIS DI KIRI & LOGO DI KANAN =====
   if has_logo:
-    # Area teks "DSO Surabaya Barat" di sebelah kiri (left=0.02, width=0.30)
+    # Area teks di sebelah kiri (left=0.02, width=0.30)
     ax_text = fig.add_axes([0.02, 0.840, 0.30, 0.095])
     ax_text.axis("off")
+    # Menggunakan \n untuk membuat 2 baris dengan ukuran font besar & bold
     ax_text.text(
         0.0,
         0.5,
-        "DSO Surabaya Barat",
+        "DSO\nSURABAYA BARAT",
         ha="left",
         va="center",
-        fontsize=24,
+        fontsize=28,
         fontweight="bold",
-        color="#1e293b",
+        color="#0f172a",
         fontfamily="sans-serif",
+        linespacing=1.1,
     )
 
     # Area logo 76aksara.png di sebelah kanan (left=0.34, width=0.67)
@@ -268,7 +271,7 @@ def buat_gambar_rekap(df, judul):
     table_bottom = 0.03
     table_height = 0.900
 
-  # ===== 3. TABEL DATA REKAP (Bersih tanpa kolom tambahan) =====
+  # ===== 3. TABEL DATA REKAP =====
   ax_table = fig.add_axes([0.02, table_bottom, 0.99, table_height])
   ax_table.axis("off")
 
