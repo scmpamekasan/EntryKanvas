@@ -279,15 +279,15 @@ def buat_gambar_rekap(df, judul):
     cell.PAD = 0.12
 
     if row == 0:  # Header (Senin, Selasa, ...)
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=20)
+      cell.set_text_props(weight="bold", color="#0f172a", fontsize=24)
       cell.set_facecolor("#e2e8f0")
     elif col == -1:  # Label baris kiri
-      cell.set_text_props(weight="bold", color="#1e293b", fontsize=18, ha="left")
+      cell.set_text_props(weight="bold", color="#1e293b", fontsize=22, ha="left")
       cell.set_facecolor("#f1f5f9")
     else:
       # Background lebih terang (putih bersih)
       cell.set_facecolor("#ffffff")
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=18)
+      cell.set_text_props(weight="bold", color="#0f172a", fontsize=22)
 
   buf = BytesIO()
   plt.savefig(
