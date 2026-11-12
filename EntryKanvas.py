@@ -204,7 +204,7 @@ def muat_data():
 def buat_gambar_rekap(df, judul):
   """Membuat gambar tabel rekapitulasi untuk diunduh (PNG/JPEG)
 
-  dengan label "DSO Surabaya Barat" di pojok kiri atas atas kolom tanggal.
+  dengan tulisan "DSO Surabaya Barat" di sebelah kiri logo 76aksara.png.
   """
   has_logo = os.path.exists("76aksara.png")
 
@@ -226,9 +226,25 @@ def buat_gambar_rekap(df, judul):
       fontfamily="sans-serif",
   )
 
-  # ===== 2. LOGO (Full-width sejajar dengan tabel: left=0.02, width=0.99) =====
+  # ===== 2. HEADER ATAS: TEKS DI SEBELAH KIRI & LOGO DI SEBELAH KANAN =====
   if has_logo:
-    ax_logo = fig.add_axes([0.02, 0.840, 0.99, 0.095])
+    # Area teks "DSO Surabaya Barat" di sebelah kiri (left=0.02, width=0.30)
+    ax_text = fig.add_axes([0.02, 0.840, 0.30, 0.095])
+    ax_text.axis("off")
+    ax_text.text(
+        0.0,
+        0.5,
+        "DSO Surabaya Barat",
+        ha="left",
+        va="center",
+        fontsize=24,
+        fontweight="bold",
+        color="#1e293b",
+        fontfamily="sans-serif",
+    )
+
+    # Area logo 76aksara.png di sebelah kanan (left=0.34, width=0.67)
+    ax_logo = fig.add_axes([0.34, 0.840, 0.67, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
@@ -252,7 +268,7 @@ def buat_gambar_rekap(df, judul):
     table_bottom = 0.03
     table_height = 0.900
 
-  # ===== 3. TABEL =====
+  # ===== 3. TABEL DATA REKAP (Bersih tanpa kolom tambahan) =====
   ax_table = fig.add_axes([0.02, table_bottom, 0.99, table_height])
   ax_table.axis("off")
 
@@ -270,37 +286,35 @@ def buat_gambar_rekap(df, judul):
   )
   table.auto_set_font_size(False)
   table.set_fontsize(26)
-  table.scale(1.0, 1.8)
+  table.scale(1.0, 1.85)
 
-  # Styling tabel + menyematkan teks "DSO Surabaya Barat" di pojok kiri atas
+  # Styling tabel agar rapi dan bersih
   for (row, col), cell in table.get_celld().items():
-    cell.set_edgecolor("#cbd5e1")
-    cell.set_linewidth(1.5)
+    cell.set_edgecolor("#64748b")
+    cell.set_linewidth(2.0)
     cell.PAD = 0.12
 
     if row == 0 and col == -1:
-      # Mengisi teks tepat di atas kolom Tanggal / pojok kiri atas
-      cell.get_text().set_text("DSO Surabaya Barat")
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=18)
-      cell.set_facecolor("#e2e8f0")
+      cell.set_facecolor("#ffffff")
+      cell.set_text_props(text="")
     elif row == 0:  # Header kolom (Senin, Selasa, ...)
-      cell.set_text_props(weight="bold", color="#0f172a", fontsize=22)
-      cell.set_facecolor("#f8fafc")
+      cell.set_text_props(weight="bold", color="#0f172a", fontsize=24)
+      cell.set_facecolor("#e2e8f0")
     elif col == -1:  # Label baris kiri (Tanggal, Total Armada, dll)
       cell.set_text_props(
-          weight="bold", color="#1e293b", fontsize=20, ha="left"
+          weight="bold", color="#1e293b", fontsize=22, ha="left"
       )
+      cell.set_facecolor("#f1f5f9")
+    else:
       cell.set_facecolor("#ffffff")
-    else:  # Isi data tabel
-      cell.set_facecolor("#ffffff")
-      cell.set_text_props(color="#0f172a", fontsize=20)
+      cell.set_text_props(weight="bold", color="#0f172a", fontsize=22)
 
   buf = BytesIO()
   plt.savefig(
       buf,
       format="png",
       bbox_inches="tight",
-      dpi=200,
+      dpi=180,
       facecolor="white",
       edgecolor="none",
       pad_inches=0.08,
@@ -308,6 +322,7 @@ def buat_gambar_rekap(df, judul):
   buf.seek(0)
   plt.close(fig)
   return buf
+
 
 # Notifikasi sukses
 if "notifikasi_sukses" in st.session_state:
