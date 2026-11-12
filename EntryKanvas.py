@@ -241,13 +241,13 @@ def buat_gambar_rekap(df, judul):
         va="center",
         fontsize=35,
         fontweight="bold",
-        color="#0f172a",
+        color="#FFFFFF",
         fontfamily="sans-serif",
         linespacing=1.4,
         bbox=dict(
             boxstyle="round,pad=0.5",  # Kotak dengan sudut melengkung halus
-            facecolor="#f1f5f9",  # Warna latar belakang dalam kotak (abu-abu terang)
-            edgecolor="#64748b",  # Warna garis border/bingkai (abu-abu gelap)
+            facecolor="#000000",  # Warna latar belakang dalam kotak (abu-abu terang)
+            edgecolor="#FFFFFF",  # Warna garis border/bingkai (abu-abu gelap)
             linewidth=2.0,  # Ketebalan garis border
         ),
     )
