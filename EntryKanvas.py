@@ -247,7 +247,7 @@ def buat_gambar_rekap(df, judul):
     )
 
     # Area logo 76aksara.png di sebelah kanan (left=0.34, width=0.67)
-    ax_logo = fig.add_axes([0.1, 0.840, 0.9, 0.095])
+    ax_logo = fig.add_axes([0.2, 0.840, 0.8, 0.095])
     ax_logo.axis("off")
     try:
       logo_img = PILImage.open("76aksara.png")
