@@ -219,7 +219,7 @@ def buat_gambar_rekap(df, judul):
       judul,
       ha="center",
       va="center",
-      fontsize=36,
+      fontsize=39,
       fontweight="bold",
       color="#0f172a",
       fontfamily="sans-serif",
@@ -269,7 +269,7 @@ def buat_gambar_rekap(df, judul):
       bbox=[0, 0, 1, 1],
   )
   table.auto_set_font_size(False)
-  table.set_fontsize(22)
+  table.set_fontsize(28)
   table.scale(1.0, 1.85)
 
   # Styling: background lebih terang + border lebih tebal
